@@ -77,3 +77,66 @@ model VerificationToken {
 
   @@id([identifier, token])
 }
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Stack {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  problems    ProblemStack[]
+}
+
+model Department {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  positions   Position[]
+  problems    Problem[]
+}
+
+model Position {
+  id           String     @id @default(cuid())
+  name         String
+  description  String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  problems     Problem[]
+
+  @@unique([name, departmentId])
+}
+
+model Problem {
+  id           String          @id @default(cuid())
+  title        String
+  description  String          @db.Text
+  difficulty   DifficultyLevel
+  departmentId String
+  positionId   String
+  department   Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  position     Position        @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  stacks       ProblemStack[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model ProblemStack {
+  id        String   @id @default(cuid())
+  problemId String
+  stackId   String
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  stack     Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([problemId, stackId])
+}
