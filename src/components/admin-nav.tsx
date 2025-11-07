@@ -72,7 +72,7 @@ export default function AdminNav() {
             <Separator />
 
             <div className="flex-1 overflow-y-auto p-3">
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                     {mainNavLinks.map(link => {
                         const Icon = link.icon;
                         return (
@@ -93,7 +93,7 @@ export default function AdminNav() {
                         );
                     })}
 
-                    <li className="mt-2">
+                    <li className="">
                         <Accordion
                             type="single"
                             collapsible

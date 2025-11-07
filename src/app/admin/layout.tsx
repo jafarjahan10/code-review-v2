@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <aside className='w-64'>
                 <AdminNav />
             </aside>
-            <main className='flex-1 p-6 overflow-y-scroll'>{children}</main>
+            <main className='flex-1 p-6 overflow-y-auto'>{children}</main>
             <Toaster />
         </div>
     );
