@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/db';
-import { Prisma } from '@prisma/client';
 
 // GET /api/admin/submissions/[id] - Get a single submission
 export async function GET(
@@ -96,7 +95,13 @@ export async function PATCH(
 
         // Add new remark with timestamp and admin info
         const remarks = Array.isArray(submission.remarks)
-            ? submission.remarks
+            ? (submission.remarks as Array<{
+                  id: string;
+                  text: string;
+                  adminName: string;
+                  adminEmail: string;
+                  createdAt: string;
+              }>)
             : [];
         const newRemark = {
             id: `remark_${Date.now()}`,
@@ -106,10 +111,12 @@ export async function PATCH(
             createdAt: new Date().toISOString(),
         };
 
+        const updatedRemarks = [...remarks, newRemark];
+
         const updatedSubmission = await prisma.submission.update({
             where: { id },
             data: {
-                remarks: [...remarks, newRemark] as Prisma.InputJsonValue,
+                remarks: updatedRemarks,
             },
             include: {
                 candidate: {
