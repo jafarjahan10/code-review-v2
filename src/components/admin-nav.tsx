@@ -56,11 +56,18 @@ export default function AdminNav() {
     const pathname = usePathname();
     const { theme, setTheme } = useTheme();
 
-    const isActive = (path: string) => pathname === path;
+    const isActive = (path: string) => {
+        // Exact match for admin dashboard
+        if (path === '/admin') {
+            return pathname === path;
+        }
+        // For other routes, check if pathname starts with the path
+        return pathname.startsWith(path);
+    };
 
     // Check if any admin management route is active
     const isAdminManagementActive = adminManagementLinks.some(
-        link => pathname === link.href
+        link => pathname.startsWith(link.href)
     );
 
     return (
