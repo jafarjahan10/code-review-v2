@@ -12,7 +12,7 @@ import {
     LucideIcon,
     Settings,
     UserCircle,
-    Users
+    Users,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
@@ -56,18 +56,30 @@ export default function AdminNav() {
     const pathname = usePathname();
     const { theme, setTheme } = useTheme();
 
-    const isActive = (path: string) => pathname === path;
+    const isActive = (path: string) => {
+        // Exact match for admin dashboard
+        if (path === '/admin') {
+            return pathname === path;
+        }
+        // For other routes, check if pathname starts with the path
+        return pathname.startsWith(path);
+    };
+
+    // Check if any admin management route is active
+    const isAdminManagementActive = adminManagementLinks.some(
+        link => pathname.startsWith(link.href)
+    );
 
     return (
         <nav className="flex flex-col h-full border-r bg-background">
             <div className="p-5">
-                <h2 className="text-xl font-bold">CodeReview</h2>
+                <h2 className="text-2xl font-bold font-space text-center">CodeReview</h2>
             </div>
 
             <Separator />
 
             <div className="flex-1 overflow-y-auto p-3">
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                     {mainNavLinks.map(link => {
                         const Icon = link.icon;
                         return (
@@ -77,8 +89,8 @@ export default function AdminNav() {
                                     className={cn(
                                         'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
                                         isActive(link.href)
-                                            ? 'bg-primary text-accent-foreground'
-                                            : 'text-muted-foreground hover:bg-primary hover:text-accent-foreground'
+                                            ? 'bg-primary text-accent'
+                                            : 'text-foreground hover:bg-primary/30 hover:text-accent-foreground'
                                     )}
                                 >
                                     <Icon size={18} />
@@ -88,18 +100,29 @@ export default function AdminNav() {
                         );
                     })}
 
-                    <li className="mt-2">
-                        <Accordion type="single" collapsible className="w-full">
+                    <li className="">
+                        <Accordion
+                            type="single"
+                            collapsible
+                            className="w-full"
+                            defaultValue={
+                                isAdminManagementActive
+                                    ? 'admin-management'
+                                    : undefined
+                            }
+                        >
                             <AccordionItem
                                 value="admin-management"
                                 className="border-none"
                             >
-                                <AccordionTrigger className="flex items-center justify-start gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:no-underline hover:bg-accent text-muted-foreground">
+                                <AccordionTrigger className="flex  items-center justify-start gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:no-underline hover:bg-primary/30 text-foreground mb-2 hover:text-accent-foreground">
                                     <Settings size={18} />
-                                    <span className='flex-1'>Admin Management</span>
+                                    <span className="flex-1">
+                                        Admin Management
+                                    </span>
                                 </AccordionTrigger>
                                 <AccordionContent className="pb-1">
-                                    <ul className="space-y-0.5">
+                                    <ul className="space-y-2">
                                         {adminManagementLinks.map(link => {
                                             const Icon = link.icon;
                                             return (
@@ -107,10 +130,10 @@ export default function AdminNav() {
                                                     <Link
                                                         href={link.href}
                                                         className={cn(
-                                                            'flex items-center gap-3 px-3 py-2 pl-9 rounded-md text-sm transition-colors',
+                                                            'flex items-center gap-3 px-3 py-2 ml-8 rounded-md text-sm transition-colors',
                                                             isActive(link.href)
-                                                                ? 'bg-primary text-accent-foreground font-medium'
-                                                                : 'text-muted-foreground hover:bg-primary hover:text-accent-foreground'
+                                                                ? 'bg-primary text-accent font-medium'
+                                                                : 'text-foreground hover:bg-primary/30 hover:text-accent-foreground'
                                                         )}
                                                     >
                                                         <Icon size={16} />
@@ -139,7 +162,10 @@ export default function AdminNav() {
                     }
                     suppressHydrationWarning
                 >
-                    <span className="flex items-center gap-3" suppressHydrationWarning>
+                    <span
+                        className="flex items-center gap-3"
+                        suppressHydrationWarning
+                    >
                         {theme === 'dark' ? (
                             <>
                                 <Contrast size={16} />
