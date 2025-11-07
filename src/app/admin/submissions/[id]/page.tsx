@@ -309,7 +309,7 @@ export default function SubmissionDetailPage({
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => router.push(`/admin/problems/${submission.problemId}/edit`)}
+                                    onClick={() => router.push(`/admin/problems/${submission.problemId}`)}
                                     className="w-full"
                                 >
                                     <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
