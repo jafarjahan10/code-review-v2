@@ -2,6 +2,6 @@
 
 import { signOut } from './auth';
 
-export async function signOutFn() {
-    await signOut();
+export async function signOutFn(path: string) {
+    await signOut({ redirectTo: path});
 }

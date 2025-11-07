@@ -189,7 +189,7 @@ export default function AdminNav() {
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start gap-3"
-                    onClick={() => signOutFn()}
+                    onClick={() => signOutFn("/admin/login")}
                 >
                     <LogOut size={16} />
                     Sign Out
