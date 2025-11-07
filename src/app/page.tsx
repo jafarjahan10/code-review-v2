@@ -24,9 +24,9 @@ export default async function Home() {
     return (
         <div className="min-h-screen max-h-screen overflow-hidden">
             <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-                <div className="container flex h-16 items-center justify-between px-4 mx-auto">
+                <div className="container flex h-14 md:h-16 items-center justify-between px-3 md:px-4 mx-auto gap-2">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold font-space">
+                        <h1 className="text-lg md:text-2xl font-bold font-space">
                             CodeReview
                         </h1>
                     </div>
@@ -38,7 +38,7 @@ export default async function Home() {
                             />
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 md:gap-2">
                         <ModeToggle />
                         <SignOutButton />
                     </div>
@@ -46,7 +46,7 @@ export default async function Home() {
             </header>
 
             {/* Main Content */}
-            <main className="container px-4 py-6 mx-auto h-[calc(100vh-64px)] overflow-y-auto scrollbar-thin">
+            <main className="container px-3 md:px-4 py-4 md:py-6 mx-auto h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto scrollbar-thin">
                 <CandidatePortal />
             </main>
         </div>

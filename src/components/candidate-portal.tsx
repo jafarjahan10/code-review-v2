@@ -266,36 +266,36 @@ export default function CandidatePortal() {
         const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
         return (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-full p-4">
                 <Card className="max-w-2xl w-full">
-                    <CardHeader className="text-center">
-                        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-                            <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-500" />
+                    <CardHeader className="text-center p-4 md:p-6">
+                        <div className="mx-auto mb-4 flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
+                            <CheckCircle2 className="h-10 w-10 md:h-12 md:w-12 text-green-600 dark:text-green-500" />
                         </div>
-                        <CardTitle className="text-2xl">
+                        <CardTitle className="text-xl md:text-2xl">
                             Test Completed Successfully!
                         </CardTitle>
-                        <CardDescription className="text-base mt-2">
+                        <CardDescription className="text-sm md:text-base mt-2">
                             Thank you for completing the coding challenge
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="rounded-lg bg-muted p-4 text-center">
-                                <p className="text-sm text-muted-foreground mb-1">
+                    <CardContent className="space-y-4 p-4 md:p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                            <div className="rounded-lg bg-muted p-3 md:p-4 text-center">
+                                <p className="text-xs md:text-sm text-muted-foreground mb-1">
                                     Submitted on
                                 </p>
-                                <p className="text-lg font-semibold">
+                                <p className="text-base md:text-lg font-semibold">
                                     {new Date(
                                         candidate.submissionTime
                                     ).toLocaleString()}
                                 </p>
                             </div>
-                            <div className="rounded-lg bg-muted p-4 text-center">
-                                <p className="text-sm text-muted-foreground mb-1">
+                            <div className="rounded-lg bg-muted p-3 md:p-4 text-center">
+                                <p className="text-xs md:text-sm text-muted-foreground mb-1">
                                     Total Time Taken
                                 </p>
-                                <p className="text-lg font-semibold font-mono tabular-nums">
+                                <p className="text-base md:text-lg font-semibold font-mono tabular-nums">
                                     {formattedTime}
                                 </p>
                             </div>
@@ -339,31 +339,31 @@ export default function CandidatePortal() {
 
     if (isLocked && !candidate.startTime) {
         return (
-            <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
+            <div className="flex items-center justify-center h-[calc(100vh-12rem)] p-4">
                 <Card className="max-w-xl w-full text-center">
-                    <CardHeader>
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                            <Lock className="h-8 w-8 text-primary" />
+                    <CardHeader className="p-4 md:p-6">
+                        <div className="mx-auto mb-4 flex h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-full bg-primary/10">
+                            <Lock className="h-6 w-6 md:h-8 md:w-8 text-primary" />
                         </div>
-                        <CardTitle className="text-2xl">Test Locked</CardTitle>
-                        <CardDescription>
+                        <CardTitle className="text-xl md:text-2xl">Test Locked</CardTitle>
+                        <CardDescription className="text-sm md:text-base">
                             This test will unlock at your scheduled time
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="rounded-lg bg-muted p-6">
-                            <p className="text-sm text-muted-foreground mb-2">
+                    <CardContent className="space-y-4 p-4 md:p-6">
+                        <div className="rounded-lg bg-muted p-4 md:p-6">
+                            <p className="text-xs md:text-sm text-muted-foreground mb-2">
                                 Scheduled Time
                             </p>
-                            <p className="text-xl font-semibold">
+                            <p className="text-lg md:text-xl font-semibold">
                                 {new Date(
                                     candidate.scheduledTime
                                 ).toLocaleString()}
                             </p>
                         </div>
                         <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                            <Clock className="h-5 w-5" />
-                            <p className="text-base">
+                            <Clock className="h-4 w-4 md:h-5 md:w-5" />
+                            <p className="text-sm md:text-base">
                                 Time remaining:{' '}
                                 <span className="font-semibold text-foreground">
                                     {timeRemaining}
@@ -379,27 +379,27 @@ export default function CandidatePortal() {
     // Show start test screen (if not started yet)
     if (!candidate.startTime) {
         return (
-            <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
+            <div className="flex items-center justify-center h-[calc(100vh-12rem)] p-4">
                 <Card className="max-w-lg w-full">
-                    <CardHeader>
-                        <CardTitle className="text-2xl">
+                    <CardHeader className="p-4 md:p-6">
+                        <CardTitle className="text-xl md:text-2xl">
                             {candidate.problem.title}
                         </CardTitle>
-                        <CardDescription className="text-base mt-2">
+                        <CardDescription className="text-sm md:text-base mt-2">
                             {candidate.position.name} •{' '}
                             {candidate.department.name}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="flex gap-2">
-                            <Badge variant="outline" className="text-sm">
+                    <CardContent className="space-y-4 md:space-y-6 p-4 md:p-6">
+                        <div className="flex gap-2 flex-wrap">
+                            <Badge variant="outline" className="text-xs md:text-sm">
                                 {candidate.problem.stacks.length} Stack
                                 {candidate.problem.stacks.length !== 1
                                     ? 's'
                                     : ''}
                             </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs md:text-sm text-muted-foreground">
                             Click the button below to start your test. The timer
                             will begin once you start.
                         </p>
@@ -429,17 +429,17 @@ export default function CandidatePortal() {
 
     // Show test interface (after test started)
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 h-full">
             {/* Left Column - Problem Description */}
-            <div className="flex flex-col">
+            <div className="flex flex-col min-h-[300px] lg:min-h-0">
                 <Card className="flex-1 flex flex-col">
-                    <CardHeader>
-                        <div className="flex items-start justify-between">
+                    <CardHeader className="p-4 md:p-6">
+                        <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
-                                <CardTitle className="text-2xl">
+                                <CardTitle className="text-xl md:text-2xl">
                                     {candidate.problem.title}
                                 </CardTitle>
-                                <CardDescription className="mt-2">
+                                <CardDescription className="mt-2 text-sm">
                                     {candidate.position.name} •{' '}
                                     {candidate.department.name}
                                 </CardDescription>
@@ -452,7 +452,7 @@ export default function CandidatePortal() {
                             </Badge> */}
                         </div>
                     </CardHeader>
-                    <CardContent className="flex-1 overflow-auto">
+                    <CardContent className="flex-1 overflow-auto p-4 md:p-6 pt-0">
                         <div className="prose prose-sm max-w-none dark:prose-invert">
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                 {candidate.problem.description}
@@ -463,26 +463,27 @@ export default function CandidatePortal() {
             </div>
 
             {/* Right Column - Code Editor */}
-            <div className="flex flex-col">
+            <div className="flex flex-col min-h-[400px] lg:min-h-0">
                 <Card className="flex-1 flex flex-col">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
+                    <CardHeader className="pb-3 p-4 md:p-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <div>
-                                <CardTitle>Your Solution</CardTitle>
-                                <CardDescription>
+                                <CardTitle className="text-lg md:text-xl">Your Solution</CardTitle>
+                                <CardDescription className="text-sm">
                                     Write your code for each stack
                                 </CardDescription>
                             </div>
                             <Button
-                                size="default"
-                                className="text-muted"
+                                size="sm"
+                                className="text-muted w-full sm:w-auto"
                                 onClick={handleSubmitClick}
                                 disabled={submitTestMutation.isPending}
                             >
                                 {submitTestMutation.isPending ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Submitting
+                                        <span className="hidden sm:inline">Submitting</span>
+                                        <span className="sm:hidden">Submit</span>
                                     </>
                                 ) : (
                                     <>
@@ -493,16 +494,17 @@ export default function CandidatePortal() {
                             </Button>
                         </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col overflow-hidden pt-0">
+                    <CardContent className="flex-1 flex flex-col overflow-hidden pt-0 p-4 md:p-6">
                         <Tabs
                             defaultValue={candidate.problem.stacks[0]?.stack.id}
                             className="flex-1 flex flex-col"
                         >
-                            <TabsList className="w-full justify-start mb-3">
+                            <TabsList className="w-full justify-start mb-3 flex-wrap">
                                 {candidate.problem.stacks.map(ps => (
                                     <TabsTrigger
                                         key={ps.stack.id}
                                         value={ps.stack.id}
+                                        className="text-xs md:text-sm"
                                     >
                                         {ps.stack.name}
                                     </TabsTrigger>
@@ -514,7 +516,7 @@ export default function CandidatePortal() {
                                     value={ps.stack.id}
                                     className="flex-1 mt-0 data-[state=active]:flex data-[state=active]:flex-col"
                                 >
-                                    <div className="flex-1 border rounded-md overflow-hidden">
+                                    <div className="flex-1 border rounded-md overflow-hidden min-h-[300px] md:min-h-[400px]">
                                         <Editor
                                             height="100%"
                                             language={getLanguage(
@@ -536,7 +538,7 @@ export default function CandidatePortal() {
                                             }
                                             options={{
                                                 minimap: { enabled: false },
-                                                fontSize: 14,
+                                                fontSize: 13,
                                                 lineNumbers: 'on',
                                                 roundedSelection: true,
                                                 scrollBeyondLastLine: false,
@@ -570,24 +572,25 @@ export default function CandidatePortal() {
                 open={showSubmitDialog}
                 onOpenChange={setShowSubmitDialog}
             >
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[95vw] sm:max-w-lg">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Submit Your Test?</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogTitle className="text-lg md:text-xl">Submit Your Test?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm">
                             Are you sure you want to submit your test? This
                             action cannot be undone. You can only submit once,
                             so please make sure you have completed all your
                             answers.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                         <AlertDialogCancel
                             disabled={submitTestMutation.isPending}
+                            className="w-full sm:w-auto"
                         >
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
-                            className='text-muted'
+                            className='text-muted w-full sm:w-auto'
                             onClick={handleSubmit}
                             disabled={submitTestMutation.isPending}
                         >

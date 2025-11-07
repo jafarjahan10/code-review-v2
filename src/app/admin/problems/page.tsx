@@ -142,48 +142,53 @@ export default function ProblemsPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Problems</h1>
-                <p className="text-muted-foreground mt-2">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Problems</h1>
+                <p className="text-sm md:text-base text-muted-foreground mt-1 md:mt-2">
                     Manage coding problems for interviews
                 </p>
             </div>
 
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2 flex-1 max-w-md">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 md:gap-4">
+                <div className="flex items-center gap-2 flex-1 max-w-full sm:max-w-md">
                     <Input
                         placeholder="Search problems..."
                         value={searchInput}
                         onChange={e => setSearchInput(e.target.value)}
+                        className="w-full"
                     />
                 </div>
 
                 {isAdmin && (
-                    <Button className="text-muted" onClick={() => router.push('/admin/problems/new')}>
+                    <Button 
+                        className="text-muted w-full sm:w-auto" 
+                        onClick={() => router.push('/admin/problems/new')}
+                    >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Problem
                     </Button>
                 )}
             </div>
 
-            <div className="border rounded-lg">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Difficulty</TableHead>
-                            <TableHead>Department</TableHead>
-                            <TableHead>Position</TableHead>
-                            <TableHead>Stacks</TableHead>
-                            <TableHead>Created At</TableHead>
-                            {isAdmin && (
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            )}
-                        </TableRow>
-                    </TableHeader>
+            <div className="border rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="min-w-[200px]">Title</TableHead>
+                                <TableHead className="min-w-[100px]">Difficulty</TableHead>
+                                <TableHead className="min-w-[150px]">Department</TableHead>
+                                <TableHead className="min-w-[150px]">Position</TableHead>
+                                <TableHead className="min-w-[150px]">Stacks</TableHead>
+                                <TableHead className="min-w-[120px]">Created At</TableHead>
+                                {isAdmin && (
+                                    <TableHead className="text-right min-w-[120px]">
+                                        Actions
+                                    </TableHead>
+                                )}
+                            </TableRow>
+                        </TableHeader>
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
@@ -296,12 +301,13 @@ export default function ProblemsPage() {
                         )}
                     </TableBody>
                 </Table>
+                </div>
             </div>
 
             {/* Pagination */}
             {data && data.totalPages > 1 && (
-                <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <p className="text-xs md:text-sm text-muted-foreground">
                         Showing {(page - 1) * 5 + 1} to{' '}
                         {Math.min(page * 5, data.total)} of {data.total}{' '}
                         problems
@@ -332,7 +338,7 @@ export default function ProblemsPage() {
                 open={deletingProblemId !== null}
                 onOpenChange={open => !open && setDeletingProblemId(null)}
             >
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[95vw] sm:max-w-lg">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -340,11 +346,11 @@ export default function ProblemsPage() {
                             delete the problem.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                        <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteProblem}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                         >
                             {deleteProblemMutation.isPending && (
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

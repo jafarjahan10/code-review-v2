@@ -40,9 +40,9 @@ export function TestTimer({ startTime, submissionTime }: TestTimerProps) {
     }, [startTime, submissionTime]);
 
     return (
-        <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-muted/50">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-mono font-medium tabular-nums">
+        <div className="flex items-center gap-1.5 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-md bg-muted/50">
+            <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
+            <span className="text-xs md:text-sm font-mono font-medium tabular-nums">
                 {elapsedTime}
             </span>
         </div>
