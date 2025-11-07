@@ -15,6 +15,7 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
+import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
     email: z.string().email('Please enter a valid email address'),
@@ -84,48 +85,17 @@ export default function AdminLogin() {
     };
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                minHeight: '100vh',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'var(--background)',
-            }}
-        >
-            <div
-                style={{
-                    maxWidth: 420,
-                    width: '100%',
-                    padding: '32px 24px',
-                    border: '1px solid var(--border)',
-                    borderRadius: 8,
-                    backgroundColor: 'var(--card)',
-                }}
-            >
-                <h1 style={{ marginBottom: 8, fontSize: 24, fontWeight: 600 }}>
+        <div className="flex min-h-screen items-center justify-center bg-background">
+            <div className="w-full max-w-[420px] rounded-lg border border-border bg-card p-8">
+                <h1 className="mb-2 text-2xl font-semibold">
                     Admin Login
                 </h1>
-                <p
-                    style={{
-                        marginBottom: 24,
-                        color: 'var(--muted-foreground)',
-                    }}
-                >
+                <p className="mb-6 text-muted-foreground">
                     Sign in to access the admin dashboard
                 </p>
 
                 {error && (
-                    <div
-                        style={{
-                            padding: 12,
-                            marginBottom: 16,
-                            backgroundColor: 'hsl(0 84.2% 60.2% / 0.1)',
-                            color: 'hsl(0 84.2% 60.2%)',
-                            borderRadius: 6,
-                            fontSize: 14,
-                        }}
-                    >
+                    <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                         {error}
                     </div>
                 )}
@@ -146,7 +116,9 @@ export default function AdminLogin() {
                                             type="email"
                                             placeholder="admin@example.com"
                                             {...field}
-                                            disabled={form.formState.isSubmitting}
+                                            disabled={
+                                                form.formState.isSubmitting
+                                            }
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -165,7 +137,9 @@ export default function AdminLogin() {
                                             type="password"
                                             placeholder="Enter your password"
                                             {...field}
-                                            disabled={form.formState.isSubmitting}
+                                            disabled={
+                                                form.formState.isSubmitting
+                                            }
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -175,12 +149,13 @@ export default function AdminLogin() {
 
                         <Button
                             type="submit"
-                            style={{ width: '100%' }}
+                            className="w-full text-muted"
                             disabled={form.formState.isSubmitting}
                         >
-                            {form.formState.isSubmitting
-                                ? 'Signing in...'
-                                : 'Sign In'}
+                            {form.formState.isSubmitting && (
+                                <Loader2 className="animate-spin" />
+                            )}{' '}
+                            Sign In
                         </Button>
                     </form>
                 </Form>

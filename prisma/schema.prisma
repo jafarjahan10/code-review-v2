@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output     = "../src/generated/prisma"
 }
 
 datasource db {
@@ -76,4 +77,106 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Stack {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  problems    ProblemStack[]
+}
+
+model Department {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  positions   Position[]
+  problems    Problem[]
+  candidates  Candidate[]
+}
+
+model Position {
+  id           String      @id @default(cuid())
+  name         String
+  description  String?
+  departmentId String
+  department   Department  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  problems     Problem[]
+  candidates   Candidate[]
+
+  @@unique([name, departmentId])
+}
+
+model Problem {
+  id           String          @id @default(cuid())
+  title        String
+  description  String          @db.Text
+  difficulty   DifficultyLevel
+  departmentId String
+  positionId   String
+  department   Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  position     Position        @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  stacks       ProblemStack[]
+  candidates   Candidate[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model ProblemStack {
+  id        String   @id @default(cuid())
+  problemId String
+  stackId   String
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  stack     Stack    @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([problemId, stackId])
+}
+
+model Candidate {
+  id             String       @id @default(cuid())
+  name           String
+  email          String       @unique
+  password       String
+  departmentId   String
+  positionId     String
+  problemId      String
+  scheduledTime  DateTime
+  startTime      DateTime?    // When candidate starts the test
+  submissionTime DateTime?
+  department     Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  position       Position     @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  problem        Problem      @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  submissions    Submission[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Submission {
+  id             String    @id @default(cuid())
+  candidateId    String
+  problemId      String
+  positionId     String
+  submissionTime DateTime
+  answers        Json // Array of code answers based on problem stacks
+  remarks        Json // Array of remarks/feedback from admins
+  candidate      Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([candidateId])
+  @@index([problemId])
+  @@index([positionId])
 }
