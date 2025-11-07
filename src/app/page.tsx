@@ -1,10 +1,8 @@
+import CandidatePortal from '@/components/candidate-portal';
+import { ModeToggle } from '@/components/mode-toggle';
+import SignOutButton from '@/components/sign-out-button';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import SignOutButton from '@/components/sign-out-button';
-import { ModeToggle } from '@/components/mode-toggle';
-import CandidatePortal from '@/components/candidate-portal';
-import { TestTimer } from '@/components/test-timer';
-import prisma from '@/lib/db';
 
 export default async function Home() {
     const session = await auth();
@@ -12,14 +10,6 @@ export default async function Home() {
     if (!session) {
         redirect('/login');
     }
-
-    // Fetch candidate data to get startTime and submissionTime
-    const candidate = session.user.email
-        ? await prisma.candidate.findUnique({
-              where: { email: session.user.email },
-              select: { startTime: true, submissionTime: true },
-          })
-        : null;
 
     return (
         <div className="min-h-screen max-h-screen overflow-hidden">
@@ -29,14 +19,6 @@ export default async function Home() {
                         <h1 className="text-lg md:text-2xl font-bold font-space">
                             CodeReview
                         </h1>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {candidate?.startTime && !candidate?.submissionTime && (
-                            <TestTimer 
-                                startTime={candidate.startTime} 
-                                submissionTime={candidate.submissionTime}
-                            />
-                        )}
                     </div>
                     <div className="flex items-center gap-1 md:gap-2">
                         <ModeToggle />
