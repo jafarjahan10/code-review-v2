@@ -183,7 +183,10 @@ export default function StacksPage() {
 
     const handleUpdateStack = () => {
         if (editingStack) {
-            updateStackMutation.mutate({ id: editingStack.id, data: editStack });
+            updateStackMutation.mutate({
+                id: editingStack.id,
+                data: editStack,
+            });
         }
     };
 
@@ -217,7 +220,7 @@ export default function StacksPage() {
                     <Input
                         placeholder="Search stacks..."
                         value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
+                        onChange={e => setSearchInput(e.target.value)}
                     />
                 </div>
 
@@ -227,7 +230,7 @@ export default function StacksPage() {
                         onOpenChange={setIsAddModalOpen}
                     >
                         <DialogTrigger asChild>
-                            <Button>
+                            <Button className="text-muted">
                                 <Plus className="h-4 w-4 mr-2" />
                                 Add Stack
                             </Button>
@@ -245,7 +248,7 @@ export default function StacksPage() {
                                     <Input
                                         id="name"
                                         value={newStack.name}
-                                        onChange={(e) =>
+                                        onChange={e =>
                                             setNewStack({
                                                 ...newStack,
                                                 name: e.target.value,
@@ -261,7 +264,7 @@ export default function StacksPage() {
                                     <Textarea
                                         id="description"
                                         value={newStack.description}
-                                        onChange={(e) =>
+                                        onChange={e =>
                                             setNewStack({
                                                 ...newStack,
                                                 description: e.target.value,
@@ -280,6 +283,7 @@ export default function StacksPage() {
                                     Cancel
                                 </Button>
                                 <Button
+                                    className="text-muted"
                                     onClick={handleAddStack}
                                     disabled={createStackMutation.isPending}
                                 >
@@ -337,7 +341,7 @@ export default function StacksPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            data?.stacks.map((stack) => (
+                            data?.stacks.map(stack => (
                                 <TableRow key={stack.id}>
                                     <TableCell className="font-medium">
                                         {stack.name}
@@ -414,7 +418,7 @@ export default function StacksPage() {
             {/* Edit Stack Dialog */}
             <Dialog
                 open={editingStack !== null}
-                onOpenChange={(open) => !open && setEditingStack(null)}
+                onOpenChange={open => !open && setEditingStack(null)}
             >
                 <DialogContent>
                     <DialogHeader>
@@ -429,7 +433,7 @@ export default function StacksPage() {
                             <Input
                                 id="edit-name"
                                 value={editStack.name}
-                                onChange={(e) =>
+                                onChange={e =>
                                     setEditStack({
                                         ...editStack,
                                         name: e.target.value,
@@ -445,7 +449,7 @@ export default function StacksPage() {
                             <Textarea
                                 id="edit-description"
                                 value={editStack.description}
-                                onChange={(e) =>
+                                onChange={e =>
                                     setEditStack({
                                         ...editStack,
                                         description: e.target.value,
@@ -479,7 +483,7 @@ export default function StacksPage() {
             {/* Delete Confirmation Dialog */}
             <AlertDialog
                 open={deletingStackId !== null}
-                onOpenChange={(open) => !open && setDeletingStackId(null)}
+                onOpenChange={open => !open && setDeletingStackId(null)}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>

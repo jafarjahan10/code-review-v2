@@ -149,7 +149,10 @@ export default function AdminCandidates() {
                         Manage candidates for technical assessments
                     </p>
                 </div>
-                <Button onClick={() => router.push('/admin/candidates/new')}>
+                <Button
+                    className="text-muted"
+                    onClick={() => router.push('/admin/candidates/new')}
+                >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Candidate
                 </Button>

@@ -153,6 +153,7 @@ model Candidate {
   positionId     String
   problemId      String
   scheduledTime  DateTime
+  startTime      DateTime?    // When candidate starts the test
   submissionTime DateTime?
   department     Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   position       Position     @relation(fields: [positionId], references: [id], onDelete: Cascade)

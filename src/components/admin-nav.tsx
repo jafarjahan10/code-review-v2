@@ -12,7 +12,7 @@ import {
     LucideIcon,
     Settings,
     UserCircle,
-    Users
+    Users,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
@@ -59,14 +59,14 @@ export default function AdminNav() {
     const isActive = (path: string) => pathname === path;
 
     // Check if any admin management route is active
-    const isAdminManagementActive = adminManagementLinks.some(link =>
-        pathname === link.href
+    const isAdminManagementActive = adminManagementLinks.some(
+        link => pathname === link.href
     );
 
     return (
         <nav className="flex flex-col h-full border-r bg-background">
             <div className="p-5">
-                <h2 className="text-xl font-bold">CodeReview</h2>
+                <h2 className="text-2xl font-bold font-space text-center">CodeReview</h2>
             </div>
 
             <Separator />
@@ -110,7 +110,9 @@ export default function AdminNav() {
                             >
                                 <AccordionTrigger className="flex  items-center justify-start gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:no-underline hover:bg-primary/30 text-foreground mb-2 hover:text-accent-foreground">
                                     <Settings size={18} />
-                                    <span className='flex-1'>Admin Management</span>
+                                    <span className="flex-1">
+                                        Admin Management
+                                    </span>
                                 </AccordionTrigger>
                                 <AccordionContent className="pb-1">
                                     <ul className="space-y-2">
@@ -153,7 +155,10 @@ export default function AdminNav() {
                     }
                     suppressHydrationWarning
                 >
-                    <span className="flex items-center gap-3" suppressHydrationWarning>
+                    <span
+                        className="flex items-center gap-3"
+                        suppressHydrationWarning
+                    >
                         {theme === 'dark' ? (
                             <>
                                 <Contrast size={16} />

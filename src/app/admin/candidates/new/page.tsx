@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ArrowLeft, Copy, Check, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Copy, Check, CalendarIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -247,7 +247,7 @@ export default function NewCandidatePage() {
                                                 value={field.value}
                                             >
                                                 <FormControl>
-                                                    <SelectTrigger className='w-full'>
+                                                    <SelectTrigger className="w-full">
                                                         <SelectValue placeholder="Select department" />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -278,13 +278,16 @@ export default function NewCandidatePage() {
                                             <Select
                                                 onValueChange={value => {
                                                     field.onChange(value);
-                                                    form.setValue('problemId', '');
+                                                    form.setValue(
+                                                        'problemId',
+                                                        ''
+                                                    );
                                                 }}
                                                 value={field.value}
                                                 disabled={!selectedDepartmentId}
                                             >
                                                 <FormControl>
-                                                    <SelectTrigger className='w-full'>
+                                                    <SelectTrigger className="w-full">
                                                         <SelectValue placeholder="Select position" />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -320,7 +323,7 @@ export default function NewCandidatePage() {
                                                 disabled={!selectedPositionId}
                                             >
                                                 <FormControl>
-                                                    <SelectTrigger className='w-full'>
+                                                    <SelectTrigger className="w-full">
                                                         <SelectValue placeholder="Select problem" />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -387,7 +390,9 @@ export default function NewCandidatePage() {
                                                     <div className="max-h-[380px] overflow-y-auto">
                                                         <Calendar
                                                             mode="single"
-                                                            selected={field.value}
+                                                            selected={
+                                                                field.value
+                                                            }
                                                             onSelect={date => {
                                                                 if (date) {
                                                                     const currentTime =
@@ -511,12 +516,11 @@ export default function NewCandidatePage() {
                                     Cancel
                                 </Button>
                                 <Button
+                                    className="text-muted"
                                     type="submit"
                                     disabled={createMutation.isPending}
                                 >
-                                    {createMutation.isPending
-                                        ? 'Creating...'
-                                        : 'Create Candidate'}
+                                    {createMutation.isPending && <Loader2 className='animate-spin' />} Create Candidate 
                                 </Button>
                             </div>
                         </form>

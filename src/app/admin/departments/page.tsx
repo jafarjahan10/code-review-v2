@@ -60,8 +60,11 @@ export default function DepartmentsPage() {
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
-    const [deletingDepartmentId, setDeletingDepartmentId] = useState<string | null>(null);
+    const [editingDepartment, setEditingDepartment] =
+        useState<Department | null>(null);
+    const [deletingDepartmentId, setDeletingDepartmentId] = useState<
+        string | null
+    >(null);
 
     const [newDepartment, setNewDepartment] = useState({
         name: '',
@@ -183,7 +186,10 @@ export default function DepartmentsPage() {
 
     const handleUpdateDepartment = () => {
         if (editingDepartment) {
-            updateDepartmentMutation.mutate({ id: editingDepartment.id, data: editDepartment });
+            updateDepartmentMutation.mutate({
+                id: editingDepartment.id,
+                data: editDepartment,
+            });
         }
     };
 
@@ -217,7 +223,7 @@ export default function DepartmentsPage() {
                     <Input
                         placeholder="Search departments..."
                         value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
+                        onChange={e => setSearchInput(e.target.value)}
                     />
                 </div>
 
@@ -227,7 +233,7 @@ export default function DepartmentsPage() {
                         onOpenChange={setIsAddModalOpen}
                     >
                         <DialogTrigger asChild>
-                            <Button>
+                            <Button className="text-muted">
                                 <Plus className="h-4 w-4 mr-2" />
                                 Add Department
                             </Button>
@@ -245,7 +251,7 @@ export default function DepartmentsPage() {
                                     <Input
                                         id="name"
                                         value={newDepartment.name}
-                                        onChange={(e) =>
+                                        onChange={e =>
                                             setNewDepartment({
                                                 ...newDepartment,
                                                 name: e.target.value,
@@ -261,7 +267,7 @@ export default function DepartmentsPage() {
                                     <Textarea
                                         id="description"
                                         value={newDepartment.description}
-                                        onChange={(e) =>
+                                        onChange={e =>
                                             setNewDepartment({
                                                 ...newDepartment,
                                                 description: e.target.value,
@@ -280,8 +286,11 @@ export default function DepartmentsPage() {
                                     Cancel
                                 </Button>
                                 <Button
+                                    className="text-muted"
                                     onClick={handleAddDepartment}
-                                    disabled={createDepartmentMutation.isPending}
+                                    disabled={
+                                        createDepartmentMutation.isPending
+                                    }
                                 >
                                     {createDepartmentMutation.isPending && (
                                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -337,7 +346,7 @@ export default function DepartmentsPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            data?.departments.map((department) => (
+                            data?.departments.map(department => (
                                 <TableRow key={department.id}>
                                     <TableCell className="font-medium">
                                         {department.name}
@@ -357,7 +366,9 @@ export default function DepartmentsPage() {
                                                     variant="ghost"
                                                     size="icon"
                                                     onClick={() =>
-                                                        openEditModal(department)
+                                                        openEditModal(
+                                                            department
+                                                        )
                                                     }
                                                 >
                                                     <Pencil className="h-4 w-4" />
@@ -388,7 +399,8 @@ export default function DepartmentsPage() {
                 <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
                         Showing {(page - 1) * 5 + 1} to{' '}
-                        {Math.min(page * 5, data.total)} of {data.total} departments
+                        {Math.min(page * 5, data.total)} of {data.total}{' '}
+                        departments
                     </p>
                     <div className="flex gap-2">
                         <Button
@@ -414,7 +426,7 @@ export default function DepartmentsPage() {
             {/* Edit Department Dialog */}
             <Dialog
                 open={editingDepartment !== null}
-                onOpenChange={(open) => !open && setEditingDepartment(null)}
+                onOpenChange={open => !open && setEditingDepartment(null)}
             >
                 <DialogContent>
                     <DialogHeader>
@@ -429,7 +441,7 @@ export default function DepartmentsPage() {
                             <Input
                                 id="edit-name"
                                 value={editDepartment.name}
-                                onChange={(e) =>
+                                onChange={e =>
                                     setEditDepartment({
                                         ...editDepartment,
                                         name: e.target.value,
@@ -445,7 +457,7 @@ export default function DepartmentsPage() {
                             <Textarea
                                 id="edit-description"
                                 value={editDepartment.description}
-                                onChange={(e) =>
+                                onChange={e =>
                                     setEditDepartment({
                                         ...editDepartment,
                                         description: e.target.value,
@@ -464,6 +476,7 @@ export default function DepartmentsPage() {
                             Cancel
                         </Button>
                         <Button
+                            className="text-muted"
                             onClick={handleUpdateDepartment}
                             disabled={updateDepartmentMutation.isPending}
                         >
@@ -479,7 +492,7 @@ export default function DepartmentsPage() {
             {/* Delete Confirmation Dialog */}
             <AlertDialog
                 open={deletingDepartmentId !== null}
-                onOpenChange={(open) => !open && setDeletingDepartmentId(null)}
+                onOpenChange={open => !open && setDeletingDepartmentId(null)}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>

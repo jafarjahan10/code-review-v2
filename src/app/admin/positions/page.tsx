@@ -74,8 +74,12 @@ export default function PositionsPage() {
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [editingPosition, setEditingPosition] = useState<Position | null>(null);
-    const [deletingPositionId, setDeletingPositionId] = useState<string | null>(null);
+    const [editingPosition, setEditingPosition] = useState<Position | null>(
+        null
+    );
+    const [deletingPositionId, setDeletingPositionId] = useState<string | null>(
+        null
+    );
 
     const [newPosition, setNewPosition] = useState({
         name: '',
@@ -209,7 +213,10 @@ export default function PositionsPage() {
 
     const handleUpdatePosition = () => {
         if (editingPosition) {
-            updatePositionMutation.mutate({ id: editingPosition.id, data: editPosition });
+            updatePositionMutation.mutate({
+                id: editingPosition.id,
+                data: editPosition,
+            });
         }
     };
 
@@ -231,9 +238,7 @@ export default function PositionsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Positions
-                </h1>
+                <h1 className="text-3xl font-bold tracking-tight">Positions</h1>
                 <p className="text-muted-foreground mt-2">
                     Manage positions across departments
                 </p>
@@ -244,7 +249,7 @@ export default function PositionsPage() {
                     <Input
                         placeholder="Search positions..."
                         value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
+                        onChange={e => setSearchInput(e.target.value)}
                     />
                 </div>
 
@@ -254,7 +259,7 @@ export default function PositionsPage() {
                         onOpenChange={setIsAddModalOpen}
                     >
                         <DialogTrigger asChild>
-                            <Button>
+                            <Button className="text-muted">
                                 <Plus className="h-4 w-4 mr-2" />
                                 Add Position
                             </Button>
@@ -268,10 +273,12 @@ export default function PositionsPage() {
                             </DialogHeader>
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="department">Department</Label>
+                                    <Label htmlFor="department">
+                                        Department
+                                    </Label>
                                     <Select
                                         value={newPosition.departmentId}
-                                        onValueChange={(value) =>
+                                        onValueChange={value =>
                                             setNewPosition({
                                                 ...newPosition,
                                                 departmentId: value,
@@ -282,11 +289,16 @@ export default function PositionsPage() {
                                             <SelectValue placeholder="Select department" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {departmentsData?.departments.map((dept) => (
-                                                <SelectItem key={dept.id} value={dept.id}>
-                                                    {dept.name}
-                                                </SelectItem>
-                                            ))}
+                                            {departmentsData?.departments.map(
+                                                dept => (
+                                                    <SelectItem
+                                                        key={dept.id}
+                                                        value={dept.id}
+                                                    >
+                                                        {dept.name}
+                                                    </SelectItem>
+                                                )
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -295,7 +307,7 @@ export default function PositionsPage() {
                                     <Input
                                         id="name"
                                         value={newPosition.name}
-                                        onChange={(e) =>
+                                        onChange={e =>
                                             setNewPosition({
                                                 ...newPosition,
                                                 name: e.target.value,
@@ -311,7 +323,7 @@ export default function PositionsPage() {
                                     <Textarea
                                         id="description"
                                         value={newPosition.description}
-                                        onChange={(e) =>
+                                        onChange={e =>
                                             setNewPosition({
                                                 ...newPosition,
                                                 description: e.target.value,
@@ -330,6 +342,7 @@ export default function PositionsPage() {
                                     Cancel
                                 </Button>
                                 <Button
+                                    className="text-muted"
                                     onClick={handleAddPosition}
                                     disabled={createPositionMutation.isPending}
                                 >
@@ -388,7 +401,7 @@ export default function PositionsPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            data?.positions.map((position) => (
+                            data?.positions.map(position => (
                                 <TableRow key={position.id}>
                                     <TableCell className="font-medium">
                                         {position.name}
@@ -442,7 +455,8 @@ export default function PositionsPage() {
                 <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
                         Showing {(page - 1) * 5 + 1} to{' '}
-                        {Math.min(page * 5, data.total)} of {data.total} positions
+                        {Math.min(page * 5, data.total)} of {data.total}{' '}
+                        positions
                     </p>
                     <div className="flex gap-2">
                         <Button
@@ -468,7 +482,7 @@ export default function PositionsPage() {
             {/* Edit Position Dialog */}
             <Dialog
                 open={editingPosition !== null}
-                onOpenChange={(open) => !open && setEditingPosition(null)}
+                onOpenChange={open => !open && setEditingPosition(null)}
             >
                 <DialogContent>
                     <DialogHeader>
@@ -482,7 +496,7 @@ export default function PositionsPage() {
                             <Label htmlFor="edit-department">Department</Label>
                             <Select
                                 value={editPosition.departmentId}
-                                onValueChange={(value) =>
+                                onValueChange={value =>
                                     setEditPosition({
                                         ...editPosition,
                                         departmentId: value,
@@ -493,8 +507,11 @@ export default function PositionsPage() {
                                     <SelectValue placeholder="Select department" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departmentsData?.departments.map((dept) => (
-                                        <SelectItem key={dept.id} value={dept.id}>
+                                    {departmentsData?.departments.map(dept => (
+                                        <SelectItem
+                                            key={dept.id}
+                                            value={dept.id}
+                                        >
                                             {dept.name}
                                         </SelectItem>
                                     ))}
@@ -506,7 +523,7 @@ export default function PositionsPage() {
                             <Input
                                 id="edit-name"
                                 value={editPosition.name}
-                                onChange={(e) =>
+                                onChange={e =>
                                     setEditPosition({
                                         ...editPosition,
                                         name: e.target.value,
@@ -522,7 +539,7 @@ export default function PositionsPage() {
                             <Textarea
                                 id="edit-description"
                                 value={editPosition.description}
-                                onChange={(e) =>
+                                onChange={e =>
                                     setEditPosition({
                                         ...editPosition,
                                         description: e.target.value,
@@ -541,6 +558,7 @@ export default function PositionsPage() {
                             Cancel
                         </Button>
                         <Button
+                            className="text-muted"
                             onClick={handleUpdatePosition}
                             disabled={updatePositionMutation.isPending}
                         >
@@ -556,7 +574,7 @@ export default function PositionsPage() {
             {/* Delete Confirmation Dialog */}
             <AlertDialog
                 open={deletingPositionId !== null}
-                onOpenChange={(open) => !open && setDeletingPositionId(null)}
+                onOpenChange={open => !open && setDeletingPositionId(null)}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>

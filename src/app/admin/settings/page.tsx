@@ -318,6 +318,7 @@ export default function SettingsPage() {
                                 </div>
 
                                 <Button
+                                    className="text-muted"
                                     type="submit"
                                     disabled={updateProfileMutation.isPending}
                                 >
@@ -409,6 +410,7 @@ export default function SettingsPage() {
                                 />
 
                                 <Button
+                                    className="text-muted"
                                     type="submit"
                                     disabled={updatePasswordMutation.isPending}
                                 >

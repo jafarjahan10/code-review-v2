@@ -263,7 +263,7 @@ export default function InterviewPanelPage() {
                         onOpenChange={setIsAddModalOpen}
                     >
                         <DialogTrigger asChild>
-                            <Button>
+                            <Button className='text-muted'>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Add User
                             </Button>
@@ -330,6 +330,7 @@ export default function InterviewPanelPage() {
                                     Cancel
                                 </Button>
                                 <Button
+                                    className="text-muted"
                                     onClick={handleAddUser}
                                     disabled={createUserMutation.isPending}
                                 >

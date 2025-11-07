@@ -392,7 +392,7 @@ export default function NewProblemPage() {
                                                 )}
                                             </TabsContent>
                                         </Tabs>
-                                        
+
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -407,6 +407,7 @@ export default function NewProblemPage() {
                                     Cancel
                                 </Button>
                                 <Button
+                                    className="text-muted"
                                     type="submit"
                                     disabled={createProblemMutation.isPending}
                                 >

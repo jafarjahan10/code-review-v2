@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ArrowLeft, Copy, Check, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Copy, Check, CalendarIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -99,31 +99,36 @@ export default function EditCandidatePage({
     // Fetch positions filtered by department
     const selectedDepartmentId = form.watch('departmentId');
     const { data: positions } = useQuery({
-        queryKey: ['positions', selectedDepartmentId],
+        queryKey: [
+            'positions',
+            selectedDepartmentId || candidate?.departmentId,
+        ],
         queryFn: async () => {
-            if (!selectedDepartmentId) return [];
+            const deptId = selectedDepartmentId || candidate?.departmentId;
+            if (!deptId) return [];
             const response = await fetch(
-                `/api/admin/positions?departmentId=${selectedDepartmentId}`
+                `/api/admin/positions?departmentId=${deptId}`
             );
             if (!response.ok) throw new Error('Failed to fetch positions');
             return response.json();
         },
-        enabled: !!selectedDepartmentId,
+        enabled: !!(selectedDepartmentId || candidate?.departmentId),
     });
 
     // Fetch problems filtered by position
     const selectedPositionId = form.watch('positionId');
     const { data: problems } = useQuery({
-        queryKey: ['problems', selectedPositionId],
+        queryKey: ['problems', selectedPositionId || candidate?.positionId],
         queryFn: async () => {
-            if (!selectedPositionId) return [];
+            const posId = selectedPositionId || candidate?.positionId;
+            if (!posId) return [];
             const response = await fetch(
-                `/api/admin/problems?positionId=${selectedPositionId}`
+                `/api/admin/problems?positionId=${posId}`
             );
             if (!response.ok) throw new Error('Failed to fetch problems');
             return response.json();
         },
-        enabled: !!selectedPositionId,
+        enabled: !!(selectedPositionId || candidate?.positionId),
     });
 
     // Populate form when candidate data loads
@@ -234,8 +239,8 @@ export default function EditCandidatePage({
                     <CardHeader>
                         <CardTitle>New Access Code Generated</CardTitle>
                         <CardDescription>
-                            Share this access code with the candidate. It will not
-                            be shown again.
+                            Share this access code with the candidate. It will
+                            not be shown again.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -265,7 +270,9 @@ export default function EditCandidatePage({
                 <CardHeader>
                     <CardTitle>Candidate Information</CardTitle>
                     <CardDescription>
-                        Update the candidate details
+                        {candidate.submissionTime
+                            ? 'This candidate has already submitted. Data cannot be updated.'
+                            : 'Update the candidate details'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -282,7 +289,12 @@ export default function EditCandidatePage({
                                         <FormItem>
                                             <FormLabel>Name</FormLabel>
                                             <FormControl>
-                                                <Input {...field} />
+                                                <Input
+                                                    {...field}
+                                                    disabled={
+                                                        !!candidate.submissionTime
+                                                    }
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -310,7 +322,13 @@ export default function EditCandidatePage({
                                                         ''
                                                     );
                                                 }}
-                                                value={field.value}
+                                                value={
+                                                    field.value ||
+                                                    candidate?.departmentId
+                                                }
+                                                disabled={
+                                                    !!candidate.submissionTime
+                                                }
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="w-full">
@@ -349,8 +367,15 @@ export default function EditCandidatePage({
                                                         ''
                                                     );
                                                 }}
-                                                value={field.value}
-                                                disabled={!selectedDepartmentId}
+                                                value={
+                                                    field.value ||
+                                                    candidate?.positionId
+                                                }
+                                                disabled={
+                                                    !!candidate.submissionTime ||
+                                                    (!selectedDepartmentId &&
+                                                        !candidate?.departmentId)
+                                                }
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="w-full">
@@ -385,8 +410,15 @@ export default function EditCandidatePage({
                                             </FormLabel>
                                             <Select
                                                 onValueChange={field.onChange}
-                                                value={field.value}
-                                                disabled={!selectedPositionId}
+                                                value={
+                                                    field.value ||
+                                                    candidate?.problemId
+                                                }
+                                                disabled={
+                                                    !!candidate.submissionTime ||
+                                                    (!selectedPositionId &&
+                                                        !candidate?.positionId)
+                                                }
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="w-full">
@@ -431,6 +463,9 @@ export default function EditCandidatePage({
                                                                 !field.value &&
                                                                     'text-muted-foreground'
                                                             )}
+                                                            disabled={
+                                                                !!candidate.submissionTime
+                                                            }
                                                         >
                                                             {field.value ? (
                                                                 format(
@@ -561,17 +596,24 @@ export default function EditCandidatePage({
                                                 checked === true
                                             )
                                         }
+                                        disabled={!!candidate.submissionTime}
                                     />
                                     <label
                                         htmlFor="regeneratePassword"
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                        className={cn(
+                                            'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+                                            candidate.submissionTime &&
+                                                'text-muted-foreground'
+                                        )}
                                     >
-                                        Regenerate access code (5 random letters)
+                                        Regenerate access code (5 random
+                                        letters)
                                     </label>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
-                                    Check this box if you want to generate a new
-                                    access code for the candidate
+                                    {candidate.submissionTime
+                                        ? 'Cannot regenerate access code after submission'
+                                        : 'Check this box if you want to generate a new access code for the candidate'}
                                 </p>
                             </div>
 
@@ -583,15 +625,22 @@ export default function EditCandidatePage({
                                         router.push('/admin/candidates')
                                     }
                                 >
-                                    Cancel
+                                    {candidate.submissionTime
+                                        ? 'Back'
+                                        : 'Cancel'}
                                 </Button>
                                 <Button
+                                    className="text-muted"
                                     type="submit"
-                                    disabled={updateMutation.isPending}
+                                    disabled={
+                                        updateMutation.isPending ||
+                                        !!candidate.submissionTime
+                                    }
                                 >
-                                    {updateMutation.isPending
-                                        ? 'Updating...'
-                                        : 'Update Candidate'}
+                                    {updateMutation.isPending && (
+                                        <Loader2 className="animate-spin" />
+                                    )}
+                                    Update Candidate 
                                 </Button>
                             </div>
                         </form>

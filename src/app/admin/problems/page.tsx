@@ -160,7 +160,7 @@ export default function ProblemsPage() {
                 </div>
 
                 {isAdmin && (
-                    <Button onClick={() => router.push('/admin/problems/new')}>
+                    <Button className="text-muted" onClick={() => router.push('/admin/problems/new')}>
                         <Plus className="h-4 w-4 mr-2" />
                         Add Problem
                     </Button>

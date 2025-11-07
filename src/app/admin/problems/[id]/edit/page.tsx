@@ -174,7 +174,7 @@ export default function EditProblemPage({
 
     // Update form when problem data is loaded
     useEffect(() => {
-        if (problem) {
+        if (problem && departmentsData && positionsData && stacksData) {
             form.reset({
                 title: problem.title,
                 description: problem.description,
@@ -184,7 +184,7 @@ export default function EditProblemPage({
                 stackIds: problem.stacks.map(s => s.stack.id),
             });
         }
-    }, [problem, form]);
+    }, [problem, departmentsData, positionsData, stacksData, form]);
 
     const onSubmit = (data: ProblemFormValues) => {
         updateProblemMutation.mutate(data);
@@ -275,7 +275,10 @@ export default function EditProblemPage({
                                             <FormLabel>Difficulty</FormLabel>
                                             <Select
                                                 onValueChange={field.onChange}
-                                                value={field.value}
+                                                value={
+                                                    field.value ||
+                                                    problem.difficulty
+                                                }
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="w-full">
@@ -313,7 +316,10 @@ export default function EditProblemPage({
                                                         ''
                                                     );
                                                 }}
-                                                value={field.value}
+                                                value={
+                                                    field.value ||
+                                                    problem.departmentId
+                                                }
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="w-full">
@@ -346,9 +352,14 @@ export default function EditProblemPage({
                                             <FormLabel>Position</FormLabel>
                                             <Select
                                                 onValueChange={field.onChange}
-                                                value={field.value}
+                                                value={
+                                                    field.value ||
+                                                    problem.positionId
+                                                }
                                                 disabled={
-                                                    !form.watch('departmentId')
+                                                    !form.watch(
+                                                        'departmentId'
+                                                    ) && !problem.departmentId
                                                 }
                                             >
                                                 <FormControl>
@@ -360,7 +371,8 @@ export default function EditProblemPage({
                                                     {getFilteredPositions(
                                                         form.watch(
                                                             'departmentId'
-                                                        )
+                                                        ) ||
+                                                            problem.departmentId
                                                     ).map(pos => (
                                                         <SelectItem
                                                             key={pos.id}
@@ -475,6 +487,7 @@ export default function EditProblemPage({
                                     Cancel
                                 </Button>
                                 <Button
+                                    className="text-muted"
                                     type="submit"
                                     disabled={updateProblemMutation.isPending}
                                 >

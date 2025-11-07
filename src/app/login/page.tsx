@@ -150,6 +150,7 @@ export default function LoginPage() {
                         />
 
                         <Button
+                            className='text-muted'
                             type="submit"
                             style={{ width: '100%' }}
                             disabled={form.formState.isSubmitting}

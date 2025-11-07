@@ -104,7 +104,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                         </p>
                     </div>
                 </div>
-                <Button onClick={() => router.push(`/admin/problems/${problem.id}/edit`)}>
+                <Button className="text-muted" onClick={() => router.push(`/admin/problems/${problem.id}/edit`)}>
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit Problem
                 </Button>
