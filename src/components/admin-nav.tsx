@@ -14,7 +14,6 @@ import {
     UserCircle,
     Users,
 } from 'lucide-react';
-import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -26,6 +25,7 @@ import {
 } from './ui/accordion';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
+import { signOutFn } from '@/lib/signOut';
 
 interface NavLink {
     href: string;
@@ -66,14 +66,16 @@ export default function AdminNav() {
     };
 
     // Check if any admin management route is active
-    const isAdminManagementActive = adminManagementLinks.some(
-        link => pathname.startsWith(link.href)
+    const isAdminManagementActive = adminManagementLinks.some(link =>
+        pathname.startsWith(link.href)
     );
 
     return (
         <nav className="flex flex-col h-full border-r bg-background">
             <div className="p-5">
-                <h2 className="text-2xl font-bold font-space text-center">CodeReview</h2>
+                <h2 className="text-2xl font-bold font-space text-center">
+                    CodeReview
+                </h2>
             </div>
 
             <Separator />
@@ -183,10 +185,11 @@ export default function AdminNav() {
                 <Separator />
 
                 <Button
+                    type="submit"
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start gap-3"
-                    onClick={() => signOut({ callbackUrl: '/admin/login' })}
+                    onClick={() => signOutFn("/admin/login")}
                 >
                     <LogOut size={16} />
                     Sign Out
