@@ -1,11 +1,8 @@
+import bcrypt from 'bcryptjs';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { PrismaClient, UserType, AdminRole } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import type { Adapter } from 'next-auth/adapters';
-
-const prisma = new PrismaClient();
+import { AdminRole, UserType } from '@/generated/prisma';
+import prisma from '@/lib/db';
 
 // Extend the built-in session types
 declare module 'next-auth' {
@@ -24,7 +21,6 @@ declare module 'next-auth' {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-    adapter: PrismaAdapter(prisma) as Adapter,
     providers: [
         CredentialsProvider({
             name: 'Credentials',
