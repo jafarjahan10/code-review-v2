@@ -165,16 +165,17 @@ model Candidate {
 }
 
 model Submission {
-  id             String    @id @default(cuid())
-  candidateId    String
-  problemId      String
-  positionId     String
-  submissionTime DateTime
-  answers        Json // Array of code answers based on problem stacks
-  remarks        Json // Array of remarks/feedback from admins
-  candidate      Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                     String    @id @default(cuid())
+  candidateId            String
+  problemId              String
+  positionId             String
+  submissionTime         DateTime
+  answers                Json // Array of code answers based on problem stacks
+  remarks                Json // Array of remarks/feedback from admins
+  recommendedForNextStep Boolean   @default(false) // Recommended by interviewer
+  candidate              Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   @@index([candidateId])
   @@index([problemId])

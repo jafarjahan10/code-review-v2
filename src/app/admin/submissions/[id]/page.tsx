@@ -4,9 +4,10 @@ import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Pencil, Trash2, X, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Card,
@@ -44,6 +45,7 @@ interface Remark {
     adminName: string;
     adminEmail: string;
     createdAt: string;
+    updatedAt?: string;
 }
 
 interface Submission {
@@ -54,6 +56,7 @@ interface Submission {
     submissionTime: string;
     answers: Answer[];
     remarks: Remark[];
+    recommendedForNextStep: boolean;
     candidate: {
         name: string;
         email: string;
@@ -80,6 +83,7 @@ interface Submission {
 
 const remarkSchema = z.object({
     text: z.string().min(1, 'Remark is required'),
+    recommendedForNextStep: z.boolean().optional(),
 });
 
 type RemarkFormValues = z.infer<typeof remarkSchema>;
@@ -155,11 +159,14 @@ export default function SubmissionDetailPage({
     const { theme } = useTheme();
     const { data: session } = useSession();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingRemarkId, setEditingRemarkId] = useState<string | null>(null);
+    const [editText, setEditText] = useState('');
 
     const form = useForm<RemarkFormValues>({
         resolver: zodResolver(remarkSchema),
         defaultValues: {
             text: '',
+            recommendedForNextStep: false,
         },
     });
 
@@ -177,7 +184,10 @@ export default function SubmissionDetailPage({
             const response = await fetch(`/api/admin/submissions/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ remark: data }),
+                body: JSON.stringify({ 
+                    remark: { text: data.text },
+                    recommendedForNextStep: data.recommendedForNextStep,
+                }),
             });
             if (!response.ok) {
                 const error = await response.json();
@@ -198,9 +208,115 @@ export default function SubmissionDetailPage({
         },
     });
 
+    const editRemarkMutation = useMutation({
+        mutationFn: async ({ remarkId, text }: { remarkId: string; text: string }) => {
+            const response = await fetch(`/api/admin/submissions/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'edit',
+                    remarkId,
+                    remark: { text },
+                }),
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to edit remark');
+            }
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['submission', id] });
+            queryClient.invalidateQueries({ queryKey: ['submissions'] });
+            toast.success('Remark updated successfully');
+            setEditingRemarkId(null);
+            setEditText('');
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+
+    const deleteRemarkMutation = useMutation({
+        mutationFn: async (remarkId: string) => {
+            const response = await fetch(`/api/admin/submissions/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'delete',
+                    remarkId,
+                }),
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete remark');
+            }
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['submission', id] });
+            queryClient.invalidateQueries({ queryKey: ['submissions'] });
+            toast.success('Remark deleted successfully');
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+
+    const updateRecommendationMutation = useMutation({
+        mutationFn: async (recommended: boolean) => {
+            const response = await fetch(`/api/admin/submissions/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'updateRecommendation',
+                    recommendedForNextStep: recommended,
+                }),
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to update recommendation');
+            }
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['submission', id] });
+            queryClient.invalidateQueries({ queryKey: ['submissions'] });
+            toast.success('Recommendation status updated');
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+
     const onSubmit = (data: RemarkFormValues) => {
         setIsSubmitting(true);
         addRemarkMutation.mutate(data);
+    };
+
+    const handleEditRemark = (remark: Remark) => {
+        setEditingRemarkId(remark.id);
+        setEditText(remark.text);
+    };
+
+    const handleSaveEdit = () => {
+        if (!editingRemarkId || !editText.trim()) return;
+        editRemarkMutation.mutate({ remarkId: editingRemarkId, text: editText });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingRemarkId(null);
+        setEditText('');
+    };
+
+    const handleDeleteRemark = (remarkId: string) => {
+        if (confirm('Are you sure you want to delete this remark?')) {
+            deleteRemarkMutation.mutate(remarkId);
+        }
+    };
+
+    const handleToggleRecommendation = (recommended: boolean) => {
+        updateRecommendationMutation.mutate(recommended);
     };
 
     if (isLoading) {
@@ -229,21 +345,44 @@ export default function SubmissionDetailPage({
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => router.push('/admin/submissions')}
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Submission Details
-                    </h1>
-                    <p className="text-muted-foreground">
-                        View submission and add feedback
-                    </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.push('/admin/submissions')}
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Submission Details
+                        </h1>
+                        <p className="text-muted-foreground">
+                            View submission and add feedback
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Recommend:</span>
+                    <Button
+                        variant={submission.recommendedForNextStep ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleToggleRecommendation(!submission.recommendedForNextStep)}
+                        className="gap-2"
+                    >
+                        {submission.recommendedForNextStep ? (
+                            <>
+                                <CheckCircle2 className="h-4 w-4" />
+                                Yes
+                            </>
+                        ) : (
+                            <>
+                                <XCircle className="h-4 w-4" />
+                                No
+                            </>
+                        )}
+                    </Button>
                 </div>
             </div>
 
@@ -283,6 +422,34 @@ export default function SubmissionDetailPage({
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-1">Department</p>
                                     <p className="font-medium">{submission.candidate.department.name}</p>
+                                </div>
+                            </div>
+                            <Separator />
+                            <div>
+                                <p className="text-sm text-muted-foreground mb-2">Recommendation Status</p>
+                                <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-md font-medium ${
+                                    submission.recommendedForNextStep
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                        : (Array.isArray(submission.remarks) && submission.remarks.length > 0)
+                                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                }`}>
+                                    {submission.recommendedForNextStep ? (
+                                        <>
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            <span className="text-sm">Recommended for Next Step</span>
+                                        </>
+                                    ) : (Array.isArray(submission.remarks) && submission.remarks.length > 0) ? (
+                                        <>
+                                            <XCircle className="h-4 w-4" />
+                                            <span className="text-sm">Not Recommended</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Clock className="h-4 w-4" />
+                                            <span className="text-sm">Pending Review</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -424,16 +591,67 @@ export default function SubmissionDetailPage({
                                                 </Avatar>
                                                 <div className="flex-1 space-y-1">
                                                     <div className="flex items-center justify-between">
-                                                        <p className="font-semibold text-sm">
-                                                            {remark.adminName}
-                                                        </p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {formatDate(remark.createdAt)}
-                                                        </p>
+                                                        <div>
+                                                            <p className="font-semibold text-sm">
+                                                                {remark.adminName}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {formatDate(remark.createdAt)}
+                                                                {remark.updatedAt && ' (edited)'}
+                                                            </p>
+                                                        </div>
+                                                        {session?.user?.email === remark.adminEmail && (
+                                                            <div className="flex gap-1">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7"
+                                                                    onClick={() => handleEditRemark(remark)}
+                                                                >
+                                                                    <Pencil className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-7 w-7 text-destructive"
+                                                                    onClick={() => handleDeleteRemark(remark.id)}
+                                                                >
+                                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <p className="text-sm whitespace-pre-wrap">
-                                                        {remark.text}
-                                                    </p>
+                                                    {editingRemarkId === remark.id ? (
+                                                        <div className="space-y-2">
+                                                            <Textarea
+                                                                value={editText}
+                                                                onChange={(e) => setEditText(e.target.value)}
+                                                                rows={3}
+                                                                className="text-sm"
+                                                            />
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={handleSaveEdit}
+                                                                    disabled={!editText.trim()}
+                                                                >
+                                                                    Save
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={handleCancelEdit}
+                                                                >
+                                                                    <X className="h-4 w-4 mr-1" />
+                                                                    Cancel
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-sm whitespace-pre-wrap">
+                                                            {remark.text}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                             <Separator />
@@ -492,6 +710,28 @@ export default function SubmissionDetailPage({
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="recommendedForNextStep"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value}
+                                                            onCheckedChange={field.onChange}
+                                                        />
+                                                    </FormControl>
+                                                    <div className="space-y-1 leading-none">
+                                                        <FormLabel>
+                                                            Recommend for next step
+                                                        </FormLabel>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Check this if you recommend this candidate to proceed to the next round
+                                                        </p>
+                                                    </div>
                                                 </FormItem>
                                             )}
                                         />

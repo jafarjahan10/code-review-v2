@@ -13181,6 +13181,7 @@ export namespace Prisma {
     problemId: string | null
     positionId: string | null
     submissionTime: Date | null
+    recommendedForNextStep: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -13191,6 +13192,7 @@ export namespace Prisma {
     problemId: string | null
     positionId: string | null
     submissionTime: Date | null
+    recommendedForNextStep: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -13203,6 +13205,7 @@ export namespace Prisma {
     submissionTime: number
     answers: number
     remarks: number
+    recommendedForNextStep: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -13215,6 +13218,7 @@ export namespace Prisma {
     problemId?: true
     positionId?: true
     submissionTime?: true
+    recommendedForNextStep?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -13225,6 +13229,7 @@ export namespace Prisma {
     problemId?: true
     positionId?: true
     submissionTime?: true
+    recommendedForNextStep?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -13237,6 +13242,7 @@ export namespace Prisma {
     submissionTime?: true
     answers?: true
     remarks?: true
+    recommendedForNextStep?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -13322,6 +13328,7 @@ export namespace Prisma {
     submissionTime: Date
     answers: JsonValue
     remarks: JsonValue
+    recommendedForNextStep: boolean
     createdAt: Date
     updatedAt: Date
     _count: SubmissionCountAggregateOutputType | null
@@ -13351,6 +13358,7 @@ export namespace Prisma {
     submissionTime?: boolean
     answers?: boolean
     remarks?: boolean
+    recommendedForNextStep?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
@@ -13364,6 +13372,7 @@ export namespace Prisma {
     submissionTime?: boolean
     answers?: boolean
     remarks?: boolean
+    recommendedForNextStep?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
@@ -13377,6 +13386,7 @@ export namespace Prisma {
     submissionTime?: boolean
     answers?: boolean
     remarks?: boolean
+    recommendedForNextStep?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
@@ -13390,11 +13400,12 @@ export namespace Prisma {
     submissionTime?: boolean
     answers?: boolean
     remarks?: boolean
+    recommendedForNextStep?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type SubmissionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "candidateId" | "problemId" | "positionId" | "submissionTime" | "answers" | "remarks" | "createdAt" | "updatedAt", ExtArgs["result"]["submission"]>
+  export type SubmissionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "candidateId" | "problemId" | "positionId" | "submissionTime" | "answers" | "remarks" | "recommendedForNextStep" | "createdAt" | "updatedAt", ExtArgs["result"]["submission"]>
   export type SubmissionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
   }
@@ -13418,6 +13429,7 @@ export namespace Prisma {
       submissionTime: Date
       answers: Prisma.JsonValue
       remarks: Prisma.JsonValue
+      recommendedForNextStep: boolean
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["submission"]>
@@ -13851,6 +13863,7 @@ export namespace Prisma {
     readonly submissionTime: FieldRef<"Submission", 'DateTime'>
     readonly answers: FieldRef<"Submission", 'Json'>
     readonly remarks: FieldRef<"Submission", 'Json'>
+    readonly recommendedForNextStep: FieldRef<"Submission", 'Boolean'>
     readonly createdAt: FieldRef<"Submission", 'DateTime'>
     readonly updatedAt: FieldRef<"Submission", 'DateTime'>
   }
@@ -14420,6 +14433,7 @@ export namespace Prisma {
     submissionTime: 'submissionTime',
     answers: 'answers',
     remarks: 'remarks',
+    recommendedForNextStep: 'recommendedForNextStep',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -14567,6 +14581,13 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -15292,6 +15313,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFilter<"Submission"> | Date | string
     answers?: JsonFilter<"Submission">
     remarks?: JsonFilter<"Submission">
+    recommendedForNextStep?: BoolFilter<"Submission"> | boolean
     createdAt?: DateTimeFilter<"Submission"> | Date | string
     updatedAt?: DateTimeFilter<"Submission"> | Date | string
     candidate?: XOR<CandidateScalarRelationFilter, CandidateWhereInput>
@@ -15305,6 +15327,7 @@ export namespace Prisma {
     submissionTime?: SortOrder
     answers?: SortOrder
     remarks?: SortOrder
+    recommendedForNextStep?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     candidate?: CandidateOrderByWithRelationInput
@@ -15321,6 +15344,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFilter<"Submission"> | Date | string
     answers?: JsonFilter<"Submission">
     remarks?: JsonFilter<"Submission">
+    recommendedForNextStep?: BoolFilter<"Submission"> | boolean
     createdAt?: DateTimeFilter<"Submission"> | Date | string
     updatedAt?: DateTimeFilter<"Submission"> | Date | string
     candidate?: XOR<CandidateScalarRelationFilter, CandidateWhereInput>
@@ -15334,6 +15358,7 @@ export namespace Prisma {
     submissionTime?: SortOrder
     answers?: SortOrder
     remarks?: SortOrder
+    recommendedForNextStep?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: SubmissionCountOrderByAggregateInput
@@ -15352,6 +15377,7 @@ export namespace Prisma {
     submissionTime?: DateTimeWithAggregatesFilter<"Submission"> | Date | string
     answers?: JsonWithAggregatesFilter<"Submission">
     remarks?: JsonWithAggregatesFilter<"Submission">
+    recommendedForNextStep?: BoolWithAggregatesFilter<"Submission"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Submission"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Submission"> | Date | string
   }
@@ -16104,6 +16130,7 @@ export namespace Prisma {
     submissionTime: Date | string
     answers: JsonNullValueInput | InputJsonValue
     remarks: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     candidate: CandidateCreateNestedOneWithoutSubmissionsInput
@@ -16117,6 +16144,7 @@ export namespace Prisma {
     submissionTime: Date | string
     answers: JsonNullValueInput | InputJsonValue
     remarks: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -16128,6 +16156,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: JsonNullValueInput | InputJsonValue
     remarks?: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     candidate?: CandidateUpdateOneRequiredWithoutSubmissionsNestedInput
@@ -16141,6 +16170,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: JsonNullValueInput | InputJsonValue
     remarks?: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -16153,6 +16183,7 @@ export namespace Prisma {
     submissionTime: Date | string
     answers: JsonNullValueInput | InputJsonValue
     remarks: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -16164,6 +16195,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: JsonNullValueInput | InputJsonValue
     remarks?: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -16176,6 +16208,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: JsonNullValueInput | InputJsonValue
     remarks?: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -16828,6 +16861,11 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type CandidateScalarRelationFilter = {
     is?: CandidateWhereInput
     isNot?: CandidateWhereInput
@@ -16841,6 +16879,7 @@ export namespace Prisma {
     submissionTime?: SortOrder
     answers?: SortOrder
     remarks?: SortOrder
+    recommendedForNextStep?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -16851,6 +16890,7 @@ export namespace Prisma {
     problemId?: SortOrder
     positionId?: SortOrder
     submissionTime?: SortOrder
+    recommendedForNextStep?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -16861,6 +16901,7 @@ export namespace Prisma {
     problemId?: SortOrder
     positionId?: SortOrder
     submissionTime?: SortOrder
+    recommendedForNextStep?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -16889,6 +16930,14 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedJsonFilter<$PrismaModel>
     _max?: NestedJsonFilter<$PrismaModel>
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
@@ -17535,6 +17584,10 @@ export namespace Prisma {
     connect?: CandidateWhereUniqueInput
   }
 
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
   export type CandidateUpdateOneRequiredWithoutSubmissionsNestedInput = {
     create?: XOR<CandidateCreateWithoutSubmissionsInput, CandidateUncheckedCreateWithoutSubmissionsInput>
     connectOrCreate?: CandidateCreateOrConnectWithoutSubmissionsInput
@@ -17754,6 +17807,11 @@ export namespace Prisma {
     _min?: NestedEnumDifficultyLevelFilter<$PrismaModel>
     _max?: NestedEnumDifficultyLevelFilter<$PrismaModel>
   }
+
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
   export type NestedJsonFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
@@ -17776,6 +17834,14 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type AccountCreateWithoutUserInput = {
@@ -18858,6 +18924,7 @@ export namespace Prisma {
     submissionTime: Date | string
     answers: JsonNullValueInput | InputJsonValue
     remarks: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -18869,6 +18936,7 @@ export namespace Prisma {
     submissionTime: Date | string
     answers: JsonNullValueInput | InputJsonValue
     remarks: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -19007,6 +19075,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFilter<"Submission"> | Date | string
     answers?: JsonFilter<"Submission">
     remarks?: JsonFilter<"Submission">
+    recommendedForNextStep?: BoolFilter<"Submission"> | boolean
     createdAt?: DateTimeFilter<"Submission"> | Date | string
     updatedAt?: DateTimeFilter<"Submission"> | Date | string
   }
@@ -19528,6 +19597,7 @@ export namespace Prisma {
     submissionTime: Date | string
     answers: JsonNullValueInput | InputJsonValue
     remarks: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -19539,6 +19609,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: JsonNullValueInput | InputJsonValue
     remarks?: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -19550,6 +19621,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: JsonNullValueInput | InputJsonValue
     remarks?: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -19561,6 +19633,7 @@ export namespace Prisma {
     submissionTime?: DateTimeFieldUpdateOperationsInput | Date | string
     answers?: JsonNullValueInput | InputJsonValue
     remarks?: JsonNullValueInput | InputJsonValue
+    recommendedForNextStep?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
