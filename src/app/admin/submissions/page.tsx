@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Eye, Trash2 } from 'lucide-react';
+import { Eye, Trash2, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -36,6 +36,7 @@ interface Submission {
     submissionTime: string;
     answers: unknown;
     remarks: unknown;
+    recommendedForNextStep: boolean;
     candidate: {
         name: string;
         email: string;
@@ -99,6 +100,35 @@ function getDifficultyColor(difficulty: string): string {
         default:
             return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
+}
+
+function getStatusIcon(submission: Submission) {
+    const remarksCount = Array.isArray(submission.remarks)
+        ? submission.remarks.length
+        : 0;
+
+    // No remarks - show pending icon
+    if (remarksCount === 0) {
+        return (
+            <Clock className="h-5 w-5 text-yellow-600 mx-auto" />
+        );
+    }
+
+    // Remarks given but not recommended - show cross icon
+    if (remarksCount > 0 && !submission.recommendedForNextStep) {
+        return (
+            <XCircle className="h-5 w-5 text-red-600 mx-auto" />
+        );
+    }
+
+    // Recommended - show check icon
+    if (submission.recommendedForNextStep) {
+        return (
+            <CheckCircle2 className="h-5 w-5 text-green-600 mx-auto" />
+        );
+    }
+
+    return null;
 }
 
 export default function SubmissionsPage() {
@@ -203,6 +233,7 @@ export default function SubmissionsPage() {
                                     <TableHead>Department</TableHead>
                                     <TableHead>Submission Time</TableHead>
                                     <TableHead>Remarks</TableHead>
+                                    <TableHead className="text-center">Status</TableHead>
                                     <TableHead className="text-right">
                                         Actions
                                     </TableHead>
@@ -212,7 +243,7 @@ export default function SubmissionsPage() {
                                 {data?.submissions.length === 0 ? (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={7}
+                                            colSpan={8}
                                             className="text-center"
                                         >
                                             No submissions found
@@ -309,6 +340,9 @@ export default function SubmissionsPage() {
                                                         : 0}{' '}
                                                     Remarks
                                                 </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                {getStatusIcon(submission)}
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">

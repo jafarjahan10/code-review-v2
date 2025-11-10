@@ -230,6 +230,7 @@ exports.Prisma.SubmissionScalarFieldEnum = {
   submissionTime: 'submissionTime',
   answers: 'answers',
   remarks: 'remarks',
+  recommendedForNextStep: 'recommendedForNextStep',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

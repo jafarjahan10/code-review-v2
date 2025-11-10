@@ -72,14 +72,7 @@ export async function PATCH(
 
         const { id } = await params;
         const body = await request.json();
-        const { remark } = body;
-
-        if (!remark || !remark.text) {
-            return NextResponse.json(
-                { error: 'Remark text is required' },
-                { status: 400 }
-            );
-        }
+        const { remark, recommendedForNextStep, remarkId, action } = body;
 
         // Get current submission
         const submission = await prisma.submission.findUnique({
@@ -93,7 +86,6 @@ export async function PATCH(
             );
         }
 
-        // Add new remark with timestamp and admin info
         const remarks = Array.isArray(submission.remarks)
             ? (submission.remarks as Array<{
                   id: string;
@@ -101,22 +93,99 @@ export async function PATCH(
                   adminName: string;
                   adminEmail: string;
                   createdAt: string;
+                  updatedAt?: string;
               }>)
             : [];
-        const newRemark = {
-            id: `remark_${Date.now()}`,
-            text: remark.text,
-            adminName: session.user.name || session.user.email || 'Admin',
-            adminEmail: session.user.email || '',
-            createdAt: new Date().toISOString(),
-        };
 
-        const updatedRemarks = [...remarks, newRemark];
+        let updatedRemarks = [...remarks];
+
+        // Handle different actions
+        if (action === 'edit' && remarkId) {
+            // Edit existing remark
+            if (!remark || !remark.text) {
+                return NextResponse.json(
+                    { error: 'Remark text is required' },
+                    { status: 400 }
+                );
+            }
+
+            const remarkIndex = updatedRemarks.findIndex(r => r.id === remarkId);
+            if (remarkIndex === -1) {
+                return NextResponse.json(
+                    { error: 'Remark not found' },
+                    { status: 404 }
+                );
+            }
+
+            // Check if the admin owns this remark
+            if (updatedRemarks[remarkIndex].adminEmail !== session.user.email) {
+                return NextResponse.json(
+                    { error: 'You can only edit your own remarks' },
+                    { status: 403 }
+                );
+            }
+
+            updatedRemarks[remarkIndex] = {
+                ...updatedRemarks[remarkIndex],
+                text: remark.text,
+                updatedAt: new Date().toISOString(),
+            };
+        } else if (action === 'delete' && remarkId) {
+            // Delete existing remark
+            const remarkToDelete = updatedRemarks.find(r => r.id === remarkId);
+            if (!remarkToDelete) {
+                return NextResponse.json(
+                    { error: 'Remark not found' },
+                    { status: 404 }
+                );
+            }
+
+            // Check if the admin owns this remark
+            if (remarkToDelete.adminEmail !== session.user.email) {
+                return NextResponse.json(
+                    { error: 'You can only delete your own remarks' },
+                    { status: 403 }
+                );
+            }
+
+            updatedRemarks = updatedRemarks.filter(r => r.id !== remarkId);
+        } else if (action === 'updateRecommendation') {
+            // Update recommendation status only
+            if (typeof recommendedForNextStep !== 'boolean') {
+                return NextResponse.json(
+                    { error: 'Recommendation status is required' },
+                    { status: 400 }
+                );
+            }
+            // Keep existing remarks, only update recommendation status
+            updatedRemarks = remarks;
+        } else {
+            // Add new remark (default behavior)
+            if (!remark || !remark.text) {
+                return NextResponse.json(
+                    { error: 'Remark text is required' },
+                    { status: 400 }
+                );
+            }
+
+            const newRemark = {
+                id: `remark_${Date.now()}`,
+                text: remark.text,
+                adminName: session.user.name || session.user.email || 'Admin',
+                adminEmail: session.user.email || '',
+                createdAt: new Date().toISOString(),
+            };
+
+            updatedRemarks = [...remarks, newRemark];
+        }
 
         const updatedSubmission = await prisma.submission.update({
             where: { id },
             data: {
                 remarks: updatedRemarks,
+                ...(typeof recommendedForNextStep === 'boolean' && {
+                    recommendedForNextStep,
+                }),
             },
             include: {
                 candidate: {
