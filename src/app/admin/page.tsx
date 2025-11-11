@@ -7,6 +7,7 @@ import {
     FileCode,
     Building2,
     TrendingUp,
+    Activity,
 } from 'lucide-react';
 import {
     Card,
@@ -26,8 +27,8 @@ import {
 import {
     Bar,
     BarChart,
-    Line,
-    LineChart,
+    Area,
+    AreaChart,
     Pie,
     PieChart,
     Cell,
@@ -35,7 +36,6 @@ import {
     YAxis,
     CartesianGrid,
     Legend,
-    ResponsiveContainer,
 } from 'recharts';
 
 interface DashboardStats {
@@ -204,20 +204,21 @@ export default function AdminPage() {
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 pb-6 px-4 lg:px-8">
             <div>
-                <h1 className="text-3xl font-bold">Dashboard</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-2xl lg:text-3xl font-bold">Dashboard</h1>
+                <p className="text-sm lg:text-base text-muted-foreground">
                     Overview of your code review platform
                 </p>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Bento Grid Layout */}
+            <div className="grid gap-3 lg:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-12 auto-rows-auto lg:auto-rows-[140px]">
+                {/* Stats Cards - Compact 4 columns on large screens */}
                 {stats.map((stat, index) => {
                     const Icon = stat.icon;
                     return (
-                        <Card key={index}>
+                        <Card key={index} className="md:col-span-1 lg:col-span-3">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">
                                     {stat.title}
@@ -235,63 +236,254 @@ export default function AdminPage() {
                         </Card>
                     );
                 })}
-            </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Recent Candidates */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Candidates</CardTitle>
-                        <CardDescription>
-                            Latest registered candidates
+                {/* Submission Trends - Larger chart on left */}
+                <Card className="md:col-span-2 lg:col-span-6 lg:row-span-2 overflow-hidden flex flex-col">
+                    <CardHeader className="pb-2 lg:pb-3">
+                        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+                            <div>
+                                <CardTitle className="flex items-center gap-2 text-sm lg:text-base">
+                                    <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                                    Submission Trends
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                    Last 7 days activity
+                                </CardDescription>
+                            </div>
+                            {data.submissionTrends.length > 0 && (
+                                <div className="text-left lg:text-right">
+                                    <div className="text-lg lg:text-xl font-bold text-blue-600">
+                                        {data.submissionTrends.reduce((sum, item) => sum + (item.submissions || 0), 0)}
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground">Total</p>
+                                </div>
+                            )}
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pb-2 flex-1 min-h-[200px]">
+                        {data.submissionTrends.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full min-h-[200px]">
+                                <FileCheck className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                                <p className="text-xs text-muted-foreground text-center">
+                                    No submission data available
+                                </p>
+                            </div>
+                        ) : (
+                            <ChartContainer
+                                config={{
+                                    submissions: {
+                                        label: 'Submissions',
+                                        color: 'hsl(217, 91%, 60%)',
+                                    },
+                                }}
+                                className="w-full aspect-video md:aspect-3/2 lg:aspect-auto lg:h-full max-h-full"
+                            >
+                                <AreaChart data={data.submissionTrends} width={500} height={300}>
+                                        <defs>
+                                            <linearGradient id="colorSubmissions" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.8}/>
+                                                <stop offset="95%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                                        <XAxis
+                                            dataKey="day"
+                                            fontSize={10}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            stroke="hsl(var(--muted-foreground))"
+                                        />
+                                        <YAxis
+                                            fontSize={10}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            stroke="hsl(var(--muted-foreground))"
+                                            allowDecimals={false}
+                                        />
+                                        <ChartTooltip
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    return (
+                                                        <div className="rounded-lg border bg-background p-2 shadow-lg">
+                                                            <div className="flex flex-col gap-1">
+                                                                <p className="text-xs font-semibold">{payload[0].payload.date}</p>
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="h-2 w-2 rounded-full bg-blue-600" />
+                                                                    <span className="text-xs text-muted-foreground">Submissions:</span>
+                                                                    <span className="text-xs font-bold text-blue-600">{payload[0].value}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="submissions"
+                                            stroke="hsl(217, 91%, 60%)"
+                                            strokeWidth={2}
+                                            fill="url(#colorSubmissions)"
+                                            dot={{ r: 3, fill: "hsl(217, 91%, 60%)", strokeWidth: 1, stroke: "#fff" }}
+                                            activeDot={{ r: 5, fill: "hsl(217, 91%, 60%)", strokeWidth: 2, stroke: "#fff" }}
+                                        />
+                                    </AreaChart>
+                            </ChartContainer>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Candidate Registration Trends - Larger chart on right */}
+                <Card className="md:col-span-2 lg:col-span-6 lg:row-span-2 overflow-hidden flex flex-col">
+                    <CardHeader className="pb-2 lg:pb-3">
+                        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+                            <div>
+                                <CardTitle className="flex items-center gap-2 text-sm lg:text-base">
+                                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
+                                    Candidate Registration
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                    Last 7 days activity
+                                </CardDescription>
+                            </div>
+                            {data.candidateTrends.length > 0 && (
+                                <div className="text-left lg:text-right">
+                                    <div className="text-lg lg:text-xl font-bold text-emerald-600">
+                                        {data.candidateTrends.reduce((sum, item) => sum + (item.candidates || 0), 0)}
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground">Total</p>
+                                </div>
+                            )}
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pb-2 flex-1 min-h-[200px]">
+                        {data.candidateTrends.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full min-h-[200px]">
+                                <Users className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                                <p className="text-xs text-muted-foreground text-center">
+                                    No candidate data available
+                                </p>
+                            </div>
+                        ) : (
+                            <ChartContainer
+                                config={{
+                                    candidates: {
+                                        label: 'Candidates',
+                                        color: 'hsl(142, 76%, 36%)',
+                                    },
+                                }}
+                                className="w-full aspect-video md:aspect-3/2 lg:aspect-auto lg:h-full max-h-full"
+                            >
+                                <AreaChart data={data.candidateTrends} width={500} height={300}>
+                                        <defs>
+                                            <linearGradient id="colorCandidates" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.8}/>
+                                                <stop offset="95%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.1}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                                        <XAxis
+                                            dataKey="day"
+                                            fontSize={10}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            stroke="hsl(var(--muted-foreground))"
+                                        />
+                                        <YAxis
+                                            fontSize={10}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            stroke="hsl(var(--muted-foreground))"
+                                            allowDecimals={false}
+                                        />
+                                        <ChartTooltip
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    return (
+                                                        <div className="rounded-lg border bg-background p-2 shadow-lg">
+                                                            <div className="flex flex-col gap-1">
+                                                                <p className="text-xs font-semibold">{payload[0].payload.date}</p>
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="h-2 w-2 rounded-full bg-emerald-600" />
+                                                                    <span className="text-xs text-muted-foreground">Candidates:</span>
+                                                                    <span className="text-xs font-bold text-emerald-600">{payload[0].value}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="candidates"
+                                            stroke="hsl(142, 76%, 36%)"
+                                            strokeWidth={2}
+                                            fill="url(#colorCandidates)"
+                                            dot={{ r: 3, fill: "hsl(142, 76%, 36%)", strokeWidth: 1, stroke: "#fff" }}
+                                            activeDot={{ r: 5, fill: "hsl(142, 76%, 36%)", strokeWidth: 2, stroke: "#fff" }}
+                                        />
+                                    </AreaChart>
+                            </ChartContainer>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Recent Candidates - Compact */}
+                <Card className="md:col-span-2 lg:col-span-4 lg:row-span-2 overflow-hidden">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm lg:text-base">Recent Candidates</CardTitle>
+                        <CardDescription className="text-xs">
+                            Latest registered
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
+                    <CardContent className="px-2 sm:px-3">
+                        <div className="space-y-2">
                             {data.recentCandidates.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-4">
+                                <p className="text-xs text-muted-foreground text-center py-8">
                                     No candidates yet
                                 </p>
                             ) : (
                                 data.recentCandidates.map(candidate => (
                                     <div
                                         key={candidate.id}
-                                        className="flex items-center gap-4 cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
+                                        className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1.5 rounded-md transition-colors"
                                         onClick={() =>
                                             router.push(
                                                 `/admin/candidates/${candidate.id}`
                                             )
                                         }
                                     >
-                                        <Avatar className="h-10 w-10">
+                                        <Avatar className="h-8 w-8">
                                             <AvatarFallback
                                                 className={getAvatarGradient(
                                                     candidate.name
                                                 )}
                                             >
-                                                <span className="text-white font-semibold">
+                                                <span className="text-white text-xs font-semibold">
                                                     {getInitials(
                                                         candidate.name
                                                     )}
                                                 </span>
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div className="flex-1 space-y-1">
-                                            <p className="text-sm font-medium leading-none">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-medium leading-none truncate">
                                                 {candidate.name}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {candidate.department.name} •{' '}
-                                                {candidate.position.name}
+                                            <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                                                {candidate.department.name}
                                             </p>
                                         </div>
-                                        <div className="text-right">
+                                        <div>
                                             {candidate.submissionTime ? (
-                                                <Badge variant="default">
-                                                    Submitted
+                                                <Badge variant="default" className="h-5 px-1.5 text-[10px]">
+                                                    Done
                                                 </Badge>
                                             ) : (
-                                                <Badge variant="destructive">
+                                                <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
                                                     Pending
                                                 </Badge>
                                             )}
@@ -303,38 +495,38 @@ export default function AdminPage() {
                     </CardContent>
                 </Card>
 
-                {/* Recent Submissions */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Submissions</CardTitle>
-                        <CardDescription>
+                {/* Recent Submissions - Compact */}
+                <Card className="md:col-span-2 lg:col-span-4 lg:row-span-2 overflow-hidden">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm lg:text-base">Recent Submissions</CardTitle>
+                        <CardDescription className="text-xs">
                             Latest code submissions
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
+                    <CardContent className="px-2 sm:px-3">
+                        <div className="space-y-2">
                             {data.recentSubmissions.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-4">
+                                <p className="text-xs text-muted-foreground text-center py-8">
                                     No submissions yet
                                 </p>
                             ) : (
                                 data.recentSubmissions.map(submission => (
                                     <div
                                         key={submission.id}
-                                        className="flex items-center gap-4 cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
+                                        className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1.5 rounded-md transition-colors"
                                         onClick={() =>
                                             router.push(
                                                 `/admin/submissions/${submission.id}`
                                             )
                                         }
                                     >
-                                        <Avatar className="h-10 w-10">
+                                        <Avatar className="h-8 w-8">
                                             <AvatarFallback
                                                 className={getAvatarGradient(
                                                     submission.candidate.name
                                                 )}
                                             >
-                                                <span className="text-white font-semibold">
+                                                <span className="text-white text-xs font-semibold">
                                                     {getInitials(
                                                         submission.candidate
                                                             .name
@@ -342,23 +534,23 @@ export default function AdminPage() {
                                                 </span>
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div className="flex-1 space-y-1">
-                                            <p className="text-sm font-medium leading-none">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-medium leading-none truncate">
                                                 {submission.candidate.name}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                                                 {
                                                     submission.candidate.problem
                                                         .title
                                                 }
                                             </p>
                                         </div>
-                                        <div className="text-right">
+                                        <div>
                                             <Badge
-                                                className={getDifficultyColor(
+                                                className={`${getDifficultyColor(
                                                     submission.candidate.problem
                                                         .difficulty
-                                                )}
+                                                )} h-5 px-1.5 text-[10px]`}
                                                 variant="secondary"
                                             >
                                                 {
@@ -373,21 +565,19 @@ export default function AdminPage() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Candidates by Department */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Candidates by Department</CardTitle>
-                        <CardDescription>
-                            Distribution across departments
+                {/* Candidates by Department - List View */}
+                <Card className="md:col-span-2 lg:col-span-4 lg:row-span-2">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm lg:text-base">By Department</CardTitle>
+                        <CardDescription className="text-xs">
+                            Candidate distribution
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
+                    <CardContent className="px-2 sm:px-3">
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                             {data.candidatesByDepartment.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-4">
+                                <p className="text-xs text-muted-foreground text-center py-8">
                                     No data available
                                 </p>
                             ) : (
@@ -395,15 +585,15 @@ export default function AdminPage() {
                                     (dept, index) => (
                                         <div
                                             key={index}
-                                            className="flex items-center justify-between"
+                                            className="flex items-center justify-between py-1.5 px-2 hover:bg-muted/50 rounded-md transition-colors"
                                         >
                                             <div className="flex items-center gap-2">
-                                                <Building2 className="h-4 w-4 text-muted-foreground" />
-                                                <span className="text-sm font-medium">
+                                                <Building2 className="h-3 w-3 text-muted-foreground" />
+                                                <span className="text-xs font-medium">
                                                     {dept.name}
                                                 </span>
                                             </div>
-                                            <Badge variant="secondary">
+                                            <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
                                                 {dept.count}
                                             </Badge>
                                         </div>
@@ -414,176 +604,105 @@ export default function AdminPage() {
                     </CardContent>
                 </Card>
 
-                {/* Problems by Difficulty */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Problems by Difficulty</CardTitle>
-                        <CardDescription>
-                            Challenge difficulty distribution
+                {/* Problems by Difficulty - Pie Chart */}
+                <Card className="md:col-span-2 lg:col-span-6 lg:row-span-2 overflow-hidden flex flex-col">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm lg:text-base">Problems by Difficulty</CardTitle>
+                        <CardDescription className="text-xs">
+                            Challenge distribution
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {data.problemsByDifficulty.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-4">
-                                    No problems available
+                    <CardContent className="flex-1 flex items-center justify-center overflow-hidden">
+                        {data.problemsByDifficulty.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full min-h-[200px]">
+                                <FileCode className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                                <p className="text-xs text-muted-foreground text-center">
+                                    No problem data available
                                 </p>
-                            ) : (
-                                data.problemsByDifficulty.map(
-                                    (problem, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center justify-between"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                                                <span className="text-sm font-medium">
-                                                    {problem.difficulty}
-                                                </span>
-                                            </div>
-                                            <Badge
-                                                className={getDifficultyColor(
-                                                    problem.difficulty
-                                                )}
-                                                variant="secondary"
+                            </div>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <ChartContainer
+                                    config={{
+                                        EASY: {
+                                            label: 'Easy',
+                                            color: 'hsl(142, 76%, 36%)',
+                                        },
+                                        MEDIUM: {
+                                            label: 'Medium',
+                                            color: 'hsl(48, 96%, 53%)',
+                                        },
+                                        HARD: {
+                                            label: 'Hard',
+                                            color: 'hsl(0, 84%, 60%)',
+                                        },
+                                    }}
+                                    className="h-full w-full max-w-[400px] max-h-[200px]"
+                                >
+                                    <PieChart width={400} height={200}>
+                                        <ChartTooltip
+                                            content={<ChartTooltipContent />}
+                                        />
+                                        <Pie
+                                                data={data.problemsByDifficulty}
+                                                dataKey="count"
+                                                nameKey="difficulty"
+                                                cx="50%"
+                                                cy="50%"
+                                                outerRadius={80}
+                                                innerRadius={50}
+                                                // paddingAngle={2}
+                                                label={(entry) => `${entry.difficulty}: ${entry.count}`}
+                                                labelLine={{ stroke: 'hsl(var(--border))' }}
                                             >
-                                                {problem.count}
-                                            </Badge>
-                                        </div>
-                                    )
-                                )
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Charts Section */}
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Submission Trends Line Chart */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Submission Trends</CardTitle>
-                        <CardDescription>
-                            Last 7 days submission activity
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {data.submissionTrends.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-8">
-                                No submission data available
-                            </p>
-                        ) : (
-                            <ChartContainer
-                                config={{
-                                    submissions: {
-                                        label: 'Submissions',
-                                        color: 'hsl(var(--chart-1))',
-                                    },
-                                }}
-                                className="h-[300px]"
-                            >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={data.submissionTrends}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis
-                                            dataKey="day"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                        />
-                                        <YAxis
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                        />
-                                        <ChartTooltip
-                                            content={<ChartTooltipContent />}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="submissions"
-                                            stroke="hsl(var(--chart-1))"
-                                            strokeWidth={2}
-                                            dot={{ r: 4 }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </ChartContainer>
+                                                {data.problemsByDifficulty.map(
+                                                    (entry, index) => {
+                                                        const colors = {
+                                                            EASY: 'hsl(142, 76%, 36%)',
+                                                            MEDIUM: 'hsl(48, 96%, 53%)',
+                                                            HARD: 'hsl(0, 84%, 60%)',
+                                                        };
+                                                        return (
+                                                            <Cell
+                                                                key={`cell-${index}`}
+                                                                fill={
+                                                                    colors[
+                                                                        entry.difficulty as keyof typeof colors
+                                                                    ] ||
+                                                                    'hsl(var(--chart-1))'
+                                                                }
+                                                            />
+                                                        );
+                                                    }
+                                                )}
+                                            </Pie>
+                                            {/* <Legend 
+                                                wrapperStyle={{ fontSize: '12px' }}
+                                                iconSize={10}
+                                            /> */}
+                                        </PieChart>
+                                </ChartContainer>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
 
-                {/* Candidate Registration Trends Line Chart */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Candidate Registration Trends</CardTitle>
-                        <CardDescription>
-                            Last 7 days registration activity
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {data.candidateTrends.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-8">
-                                No candidate data available
-                            </p>
-                        ) : (
-                            <ChartContainer
-                                config={{
-                                    candidates: {
-                                        label: 'Candidates',
-                                        color: 'hsl(var(--chart-2))',
-                                    },
-                                }}
-                                className="h-[300px]"
-                            >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={data.candidateTrends}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis
-                                            dataKey="day"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                        />
-                                        <YAxis
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                        />
-                                        <ChartTooltip
-                                            content={<ChartTooltipContent />}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="candidates"
-                                            stroke="hsl(var(--chart-2))"
-                                            strokeWidth={2}
-                                            dot={{ r: 4 }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </ChartContainer>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* More Charts */}
-            <div className="grid gap-6 md:grid-cols-2">
                 {/* Candidates by Department Bar Chart */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Candidates by Department</CardTitle>
-                        <CardDescription>
-                            Distribution visualization
+                <Card className="md:col-span-2 lg:col-span-6 lg:row-span-2 overflow-hidden flex flex-col">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm lg:text-base">Candidates by Department</CardTitle>
+                        <CardDescription className="text-xs">
+                            Distribution overview
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pb-2 flex-1 min-h-[200px]">
                         {data.candidatesByDepartment.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-8">
-                                No department data available
-                            </p>
+                            <div className="flex flex-col items-center justify-center h-full min-h-[200px]">
+                                <Building2 className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                                <p className="text-xs text-muted-foreground text-center">
+                                    No department data available
+                                </p>
+                            </div>
                         ) : (
                             <ChartContainer
                                 config={{
@@ -592,23 +711,25 @@ export default function AdminPage() {
                                         color: 'hsl(280, 85%, 60%)',
                                     },
                                 }}
-                                className="h-[300px]"
+                                className="w-full aspect-video md:aspect-3/2 lg:aspect-auto lg:h-full max-h-full"
                             >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart
-                                        data={data.candidatesByDepartment}
-                                    >
-                                        <CartesianGrid strokeDasharray="3 3" />
+                                <BarChart
+                                    data={data.candidatesByDepartment}
+                                    width={500}
+                                    height={300}
+                                >
+                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                                         <XAxis
                                             dataKey="name"
-                                            fontSize={12}
+                                            fontSize={10}
                                             tickLine={false}
                                             axisLine={false}
                                         />
                                         <YAxis
-                                            fontSize={12}
+                                            fontSize={10}
                                             tickLine={false}
                                             axisLine={false}
+                                            allowDecimals={false}
                                         />
                                         <ChartTooltip
                                             content={<ChartTooltipContent />}
@@ -619,144 +740,11 @@ export default function AdminPage() {
                                             radius={[8, 8, 0, 0]}
                                         />
                                     </BarChart>
-                                </ResponsiveContainer>
-                            </ChartContainer>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* Problems by Difficulty Pie Chart */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Problems by Difficulty</CardTitle>
-                        <CardDescription>
-                            Difficulty level distribution
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {data.problemsByDifficulty.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-8">
-                                No problem data available
-                            </p>
-                        ) : (
-                            <ChartContainer
-                                config={{
-                                    EASY: {
-                                        label: 'Easy',
-                                        color: 'hsl(142, 76%, 36%)',
-                                    },
-                                    MEDIUM: {
-                                        label: 'Medium',
-                                        color: 'hsl(48, 96%, 53%)',
-                                    },
-                                    HARD: {
-                                        label: 'Hard',
-                                        color: 'hsl(0, 84%, 60%)',
-                                    },
-                                }}
-                                className="h-[300px]"
-                            >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <ChartTooltip
-                                            content={<ChartTooltipContent />}
-                                        />
-                                        <Pie
-                                            data={data.problemsByDifficulty}
-                                            dataKey="count"
-                                            nameKey="difficulty"
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={80}
-                                            label
-                                        >
-                                            {data.problemsByDifficulty.map(
-                                                (entry, index) => {
-                                                    const colors = {
-                                                        EASY: 'hsl(142, 76%, 36%)',
-                                                        MEDIUM: 'hsl(48, 96%, 53%)',
-                                                        HARD: 'hsl(0, 84%, 60%)',
-                                                    };
-                                                    return (
-                                                        <Cell
-                                                            key={`cell-${index}`}
-                                                            fill={
-                                                                colors[
-                                                                    entry.difficulty as keyof typeof colors
-                                                                ] ||
-                                                                'hsl(var(--chart-1))'
-                                                            }
-                                                        />
-                                                    );
-                                                }
-                                            )}
-                                        </Pie>
-                                        <Legend />
-                                    </PieChart>
-                                </ResponsiveContainer>
                             </ChartContainer>
                         )}
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Problems by Position Bar Chart */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Problems by Position</CardTitle>
-                    <CardDescription>
-                        Top 5 positions with most problems
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {data.problemsByPosition.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-8">
-                            No position data available
-                        </p>
-                    ) : (
-                        <ChartContainer
-                            config={{
-                                problems: {
-                                    label: 'Problems',
-                                    color: 'hsl(440, 82%, 52%)',
-                                },
-                            }}
-                            className="h-[300px]"
-                        >
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={data.problemsByPosition}
-                                    layout="vertical"
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis
-                                        type="number"
-                                        fontSize={12}
-                                        tickLine={false}
-                                        axisLine={false}
-                                    />
-                                    <YAxis
-                                        type="category"
-                                        dataKey="name"
-                                        fontSize={12}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        width={100}
-                                    />
-                                    <ChartTooltip
-                                        content={<ChartTooltipContent />}
-                                    />
-                                    <Bar
-                                        dataKey="problems"
-                                        fill="hsl(440, 82%, 52%)"
-                                        radius={[0, 8, 8, 0]}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </ChartContainer>
-                    )}
-                </CardContent>
-            </Card>
         </div>
     );
 }

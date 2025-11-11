@@ -11989,6 +11989,7 @@ export namespace Prisma {
     positionId: string | null
     problemId: string | null
     scheduledTime: Date | null
+    endTime: Date | null
     startTime: Date | null
     submissionTime: Date | null
     createdAt: Date | null
@@ -12004,6 +12005,7 @@ export namespace Prisma {
     positionId: string | null
     problemId: string | null
     scheduledTime: Date | null
+    endTime: Date | null
     startTime: Date | null
     submissionTime: Date | null
     createdAt: Date | null
@@ -12019,6 +12021,7 @@ export namespace Prisma {
     positionId: number
     problemId: number
     scheduledTime: number
+    endTime: number
     startTime: number
     submissionTime: number
     createdAt: number
@@ -12036,6 +12039,7 @@ export namespace Prisma {
     positionId?: true
     problemId?: true
     scheduledTime?: true
+    endTime?: true
     startTime?: true
     submissionTime?: true
     createdAt?: true
@@ -12051,6 +12055,7 @@ export namespace Prisma {
     positionId?: true
     problemId?: true
     scheduledTime?: true
+    endTime?: true
     startTime?: true
     submissionTime?: true
     createdAt?: true
@@ -12066,6 +12071,7 @@ export namespace Prisma {
     positionId?: true
     problemId?: true
     scheduledTime?: true
+    endTime?: true
     startTime?: true
     submissionTime?: true
     createdAt?: true
@@ -12154,6 +12160,7 @@ export namespace Prisma {
     positionId: string
     problemId: string
     scheduledTime: Date
+    endTime: Date
     startTime: Date | null
     submissionTime: Date | null
     createdAt: Date
@@ -12186,6 +12193,7 @@ export namespace Prisma {
     positionId?: boolean
     problemId?: boolean
     scheduledTime?: boolean
+    endTime?: boolean
     startTime?: boolean
     submissionTime?: boolean
     createdAt?: boolean
@@ -12206,6 +12214,7 @@ export namespace Prisma {
     positionId?: boolean
     problemId?: boolean
     scheduledTime?: boolean
+    endTime?: boolean
     startTime?: boolean
     submissionTime?: boolean
     createdAt?: boolean
@@ -12224,6 +12233,7 @@ export namespace Prisma {
     positionId?: boolean
     problemId?: boolean
     scheduledTime?: boolean
+    endTime?: boolean
     startTime?: boolean
     submissionTime?: boolean
     createdAt?: boolean
@@ -12242,13 +12252,14 @@ export namespace Prisma {
     positionId?: boolean
     problemId?: boolean
     scheduledTime?: boolean
+    endTime?: boolean
     startTime?: boolean
     submissionTime?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type CandidateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password" | "departmentId" | "positionId" | "problemId" | "scheduledTime" | "startTime" | "submissionTime" | "createdAt" | "updatedAt", ExtArgs["result"]["candidate"]>
+  export type CandidateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password" | "departmentId" | "positionId" | "problemId" | "scheduledTime" | "endTime" | "startTime" | "submissionTime" | "createdAt" | "updatedAt", ExtArgs["result"]["candidate"]>
   export type CandidateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     department?: boolean | DepartmentDefaultArgs<ExtArgs>
     position?: boolean | PositionDefaultArgs<ExtArgs>
@@ -12284,6 +12295,7 @@ export namespace Prisma {
       positionId: string
       problemId: string
       scheduledTime: Date
+      endTime: Date
       startTime: Date | null
       submissionTime: Date | null
       createdAt: Date
@@ -12723,6 +12735,7 @@ export namespace Prisma {
     readonly positionId: FieldRef<"Candidate", 'String'>
     readonly problemId: FieldRef<"Candidate", 'String'>
     readonly scheduledTime: FieldRef<"Candidate", 'DateTime'>
+    readonly endTime: FieldRef<"Candidate", 'DateTime'>
     readonly startTime: FieldRef<"Candidate", 'DateTime'>
     readonly submissionTime: FieldRef<"Candidate", 'DateTime'>
     readonly createdAt: FieldRef<"Candidate", 'DateTime'>
@@ -14416,6 +14429,7 @@ export namespace Prisma {
     positionId: 'positionId',
     problemId: 'problemId',
     scheduledTime: 'scheduledTime',
+    endTime: 'endTime',
     startTime: 'startTime',
     submissionTime: 'submissionTime',
     createdAt: 'createdAt',
@@ -15215,6 +15229,7 @@ export namespace Prisma {
     positionId?: StringFilter<"Candidate"> | string
     problemId?: StringFilter<"Candidate"> | string
     scheduledTime?: DateTimeFilter<"Candidate"> | Date | string
+    endTime?: DateTimeFilter<"Candidate"> | Date | string
     startTime?: DateTimeNullableFilter<"Candidate"> | Date | string | null
     submissionTime?: DateTimeNullableFilter<"Candidate"> | Date | string | null
     createdAt?: DateTimeFilter<"Candidate"> | Date | string
@@ -15234,6 +15249,7 @@ export namespace Prisma {
     positionId?: SortOrder
     problemId?: SortOrder
     scheduledTime?: SortOrder
+    endTime?: SortOrder
     startTime?: SortOrderInput | SortOrder
     submissionTime?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -15256,6 +15272,7 @@ export namespace Prisma {
     positionId?: StringFilter<"Candidate"> | string
     problemId?: StringFilter<"Candidate"> | string
     scheduledTime?: DateTimeFilter<"Candidate"> | Date | string
+    endTime?: DateTimeFilter<"Candidate"> | Date | string
     startTime?: DateTimeNullableFilter<"Candidate"> | Date | string | null
     submissionTime?: DateTimeNullableFilter<"Candidate"> | Date | string | null
     createdAt?: DateTimeFilter<"Candidate"> | Date | string
@@ -15275,6 +15292,7 @@ export namespace Prisma {
     positionId?: SortOrder
     problemId?: SortOrder
     scheduledTime?: SortOrder
+    endTime?: SortOrder
     startTime?: SortOrderInput | SortOrder
     submissionTime?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -15296,6 +15314,7 @@ export namespace Prisma {
     positionId?: StringWithAggregatesFilter<"Candidate"> | string
     problemId?: StringWithAggregatesFilter<"Candidate"> | string
     scheduledTime?: DateTimeWithAggregatesFilter<"Candidate"> | Date | string
+    endTime?: DateTimeWithAggregatesFilter<"Candidate"> | Date | string
     startTime?: DateTimeNullableWithAggregatesFilter<"Candidate"> | Date | string | null
     submissionTime?: DateTimeNullableWithAggregatesFilter<"Candidate"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Candidate"> | Date | string
@@ -16023,6 +16042,7 @@ export namespace Prisma {
     email: string
     password: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -16042,6 +16062,7 @@ export namespace Prisma {
     positionId: string
     problemId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -16055,6 +16076,7 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16074,6 +16096,7 @@ export namespace Prisma {
     positionId?: StringFieldUpdateOperationsInput | string
     problemId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16090,6 +16113,7 @@ export namespace Prisma {
     positionId: string
     problemId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -16102,6 +16126,7 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16117,6 +16142,7 @@ export namespace Prisma {
     positionId?: StringFieldUpdateOperationsInput | string
     problemId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16802,6 +16828,7 @@ export namespace Prisma {
     positionId?: SortOrder
     problemId?: SortOrder
     scheduledTime?: SortOrder
+    endTime?: SortOrder
     startTime?: SortOrder
     submissionTime?: SortOrder
     createdAt?: SortOrder
@@ -16817,6 +16844,7 @@ export namespace Prisma {
     positionId?: SortOrder
     problemId?: SortOrder
     scheduledTime?: SortOrder
+    endTime?: SortOrder
     startTime?: SortOrder
     submissionTime?: SortOrder
     createdAt?: SortOrder
@@ -16832,6 +16860,7 @@ export namespace Prisma {
     positionId?: SortOrder
     problemId?: SortOrder
     scheduledTime?: SortOrder
+    endTime?: SortOrder
     startTime?: SortOrder
     submissionTime?: SortOrder
     createdAt?: SortOrder
@@ -18232,6 +18261,7 @@ export namespace Prisma {
     email: string
     password: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -18249,6 +18279,7 @@ export namespace Prisma {
     positionId: string
     problemId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -18352,6 +18383,7 @@ export namespace Prisma {
     positionId?: StringFilter<"Candidate"> | string
     problemId?: StringFilter<"Candidate"> | string
     scheduledTime?: DateTimeFilter<"Candidate"> | Date | string
+    endTime?: DateTimeFilter<"Candidate"> | Date | string
     startTime?: DateTimeNullableFilter<"Candidate"> | Date | string | null
     submissionTime?: DateTimeNullableFilter<"Candidate"> | Date | string | null
     createdAt?: DateTimeFilter<"Candidate"> | Date | string
@@ -18423,6 +18455,7 @@ export namespace Prisma {
     email: string
     password: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -18440,6 +18473,7 @@ export namespace Prisma {
     departmentId: string
     problemId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -18598,6 +18632,7 @@ export namespace Prisma {
     email: string
     password: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -18615,6 +18650,7 @@ export namespace Prisma {
     departmentId: string
     positionId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -19086,6 +19122,7 @@ export namespace Prisma {
     email: string
     password: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -19104,6 +19141,7 @@ export namespace Prisma {
     positionId: string
     problemId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -19132,6 +19170,7 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19150,6 +19189,7 @@ export namespace Prisma {
     positionId?: StringFieldUpdateOperationsInput | string
     problemId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19294,6 +19334,7 @@ export namespace Prisma {
     positionId: string
     problemId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -19368,6 +19409,7 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19385,6 +19427,7 @@ export namespace Prisma {
     positionId?: StringFieldUpdateOperationsInput | string
     problemId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19400,6 +19443,7 @@ export namespace Prisma {
     positionId?: StringFieldUpdateOperationsInput | string
     problemId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19424,6 +19468,7 @@ export namespace Prisma {
     departmentId: string
     problemId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -19470,6 +19515,7 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19487,6 +19533,7 @@ export namespace Prisma {
     departmentId?: StringFieldUpdateOperationsInput | string
     problemId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19502,6 +19549,7 @@ export namespace Prisma {
     departmentId?: StringFieldUpdateOperationsInput | string
     problemId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19522,6 +19570,7 @@ export namespace Prisma {
     departmentId: string
     positionId: string
     scheduledTime: Date | string
+    endTime: Date | string
     startTime?: Date | string | null
     submissionTime?: Date | string | null
     createdAt?: Date | string
@@ -19552,6 +19601,7 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19569,6 +19619,7 @@ export namespace Prisma {
     departmentId?: StringFieldUpdateOperationsInput | string
     positionId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19584,6 +19635,7 @@ export namespace Prisma {
     departmentId?: StringFieldUpdateOperationsInput | string
     positionId?: StringFieldUpdateOperationsInput | string
     scheduledTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     submissionTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

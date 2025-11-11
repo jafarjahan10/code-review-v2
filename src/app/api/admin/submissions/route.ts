@@ -17,53 +17,95 @@ export async function GET(request: NextRequest) {
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '5');
         const search = searchParams.get('search') || '';
+        const recommendation = searchParams.get('recommendation') || '';
+        const difficulty = searchParams.get('difficulty') || '';
+        const sortBy = searchParams.get('sortBy') || 'submissionTime';
+        const sortOrder = searchParams.get('sortOrder') || 'desc';
 
         const skip = (page - 1) * limit;
 
-        // Build where clause for search
-        const where = search
-            ? {
-                  OR: [
-                      {
-                          candidate: {
-                              name: {
-                                  contains: search,
-                                  mode: 'insensitive' as const,
-                              },
-                          },
-                      },
-                      {
-                          candidate: {
-                              email: {
-                                  contains: search,
-                                  mode: 'insensitive' as const,
-                              },
-                          },
-                      },
-                  ],
-              }
-            : {};
-
-        const [submissions, total] = await Promise.all([
-            prisma.submission.findMany({
-                where,
-                include: {
-                    candidate: {
-                        include: {
-                            problem: true,
-                            position: true,
-                            department: true,
+        // Build where clause for search and filters
+        const where: Record<string, unknown> = {
+            ...(search && {
+                OR: [
+                    {
+                        candidate: {
+                            name: {
+                                contains: search,
+                                mode: 'insensitive' as const,
+                            },
                         },
                     },
-                },
-                orderBy: {
-                    submissionTime: 'desc',
-                },
-                skip,
-                take: limit,
+                    {
+                        candidate: {
+                            email: {
+                                contains: search,
+                                mode: 'insensitive' as const,
+                            },
+                        },
+                    },
+                ],
             }),
-            prisma.submission.count({ where }),
-        ]);
+            ...(difficulty && {
+                candidate: {
+                    problem: {
+                        difficulty: difficulty
+                    }
+                }
+            }),
+        };
+
+        // Build dynamic orderBy based on sortBy parameter
+        let orderBy: Record<string, unknown>;
+        if (sortBy === 'candidateName') {
+            orderBy = {
+                candidate: {
+                    name: sortOrder
+                }
+            };
+        } else {
+            orderBy = {
+                [sortBy]: sortOrder
+            };
+        }
+
+        // Fetch all submissions matching basic criteria (search, difficulty)
+        // Then filter by recommendation status in-memory since JSON filtering is complex
+        const allSubmissions = await prisma.submission.findMany({
+            where,
+            include: {
+                candidate: {
+                    include: {
+                        problem: true,
+                        position: true,
+                        department: true,
+                    },
+                },
+            },
+            orderBy,
+        });
+
+        // Filter by recommendation status
+        let filteredSubmissions = allSubmissions;
+        if (recommendation === 'recommended') {
+            filteredSubmissions = allSubmissions.filter(
+                s => s.recommendedForNextStep === true
+            );
+        } else if (recommendation === 'not-recommended') {
+            filteredSubmissions = allSubmissions.filter(s => {
+                const remarksArray = Array.isArray(s.remarks) ? s.remarks : [];
+                return s.recommendedForNextStep === false && remarksArray.length > 0;
+            });
+        } else if (recommendation === 'pending') {
+            filteredSubmissions = allSubmissions.filter(s => {
+                const remarksArray = Array.isArray(s.remarks) ? s.remarks : [];
+                return s.recommendedForNextStep === false && remarksArray.length === 0;
+            });
+        }
+
+        // Apply pagination after filtering
+        const total = filteredSubmissions.length;
+        const submissions = filteredSubmissions.slice(skip, skip + limit);
 
         return NextResponse.json({
             submissions,

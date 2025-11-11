@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/db';
-import { generatePassword } from '@/lib/utils';
 import bcrypt from 'bcryptjs';
 
 export async function GET(request: NextRequest) {
@@ -18,27 +17,40 @@ export async function GET(request: NextRequest) {
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '5');
         const search = searchParams.get('search') || '';
+        const departmentId = searchParams.get('departmentId') || '';
+        const positionId = searchParams.get('positionId') || '';
+        const status = searchParams.get('status') || '';
+        const sortBy = searchParams.get('sortBy') || 'createdAt';
+        const sortOrder = searchParams.get('sortOrder') || 'desc';
 
         const skip = (page - 1) * limit;
 
-        const where = search
-            ? {
-                  OR: [
-                      {
-                          name: {
-                              contains: search,
-                              mode: 'insensitive' as const,
-                          },
-                      },
-                      {
-                          email: {
-                              contains: search,
-                              mode: 'insensitive' as const,
-                          },
-                      },
-                  ],
-              }
-            : {};
+        const where: Record<string, unknown> = {
+            ...(search && {
+                OR: [
+                    {
+                        name: {
+                            contains: search,
+                            mode: 'insensitive' as const,
+                        },
+                    },
+                    {
+                        email: {
+                            contains: search,
+                            mode: 'insensitive' as const,
+                        },
+                    },
+                ],
+            }),
+            ...(departmentId && { departmentId }),
+            ...(positionId && { positionId }),
+            ...(status === 'submitted' && { submissionTime: { not: null } }),
+            ...(status === 'pending' && { submissionTime: null }),
+        };
+
+        const orderBy: Record<string, 'asc' | 'desc'> = {
+            [sortBy]: sortOrder as 'asc' | 'desc'
+        };
 
         const [candidates, total] = await Promise.all([
             prisma.candidate.findMany({
@@ -48,7 +60,7 @@ export async function GET(request: NextRequest) {
                     position: true,
                     problem: true,
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy,
                 skip,
                 take: limit,
             }),
@@ -89,6 +101,8 @@ export async function POST(request: NextRequest) {
             positionId,
             problemId,
             scheduledTime,
+            endTime,
+            password,
         } = body;
 
         // Validate required fields
@@ -98,7 +112,9 @@ export async function POST(request: NextRequest) {
             !departmentId ||
             !positionId ||
             !problemId ||
-            !scheduledTime
+            !scheduledTime ||
+            !endTime ||
+            !password
         ) {
             return NextResponse.json(
                 { error: 'All fields are required' },
@@ -118,8 +134,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Generate 5-letter random password
-        const plainPassword = generatePassword(5);
+        // Use the password from the request
+        const plainPassword = password;
         // Store plain text password for candidates (not hashed)
         // Hash password for User table authentication
         const hashedPassword = await bcrypt.hash(plainPassword, 10);
@@ -159,6 +175,7 @@ export async function POST(request: NextRequest) {
                     positionId,
                     problemId,
                     scheduledTime: new Date(scheduledTime),
+                    endTime: new Date(endTime),
                 },
                 include: {
                     department: true,

@@ -49,6 +49,7 @@ const formSchema = z.object({
     positionId: z.string().min(1, 'Position is required'),
     problemId: z.string().min(1, 'Problem is required'),
     scheduledTime: z.date(),
+    endTime: z.date(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -68,6 +69,7 @@ export default function NewCandidatePage() {
             positionId: '',
             problemId: '',
             scheduledTime: undefined,
+            endTime: undefined,
         },
     });
 
@@ -75,6 +77,16 @@ export default function NewCandidatePage() {
     useEffect(() => {
         setGeneratedPassword(generatePassword(5));
     }, []);
+
+    // Watch scheduledTime and auto-set endTime to 4 hours later
+    const scheduledTime = form.watch('scheduledTime');
+    useEffect(() => {
+        if (scheduledTime) {
+            const endTime = new Date(scheduledTime);
+            endTime.setHours(endTime.getHours() + 4);
+            form.setValue('endTime', endTime);
+        }
+    }, [scheduledTime, form]);
 
     // Fetch departments
     const { data: departments } = useQuery({
@@ -123,7 +135,9 @@ export default function NewCandidatePage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...data,
+                    password: generatedPassword,
                     scheduledTime: data.scheduledTime.toISOString(),
+                    endTime: data.endTime.toISOString(),
                 }),
             });
             if (!response.ok) {
@@ -425,6 +439,132 @@ export default function NewCandidatePage() {
                                                     </div>
                                                     <div className="border-l p-3">
                                                         <div className="flex items-center gap-2">
+                                                            <Input
+                                                                type="time"
+                                                                value={
+                                                                    field.value
+                                                                        ? format(
+                                                                              field.value,
+                                                                              'HH:mm'
+                                                                          )
+                                                                        : ''
+                                                                }
+                                                                onChange={e => {
+                                                                    const [
+                                                                        hours,
+                                                                        minutes,
+                                                                    ] =
+                                                                        e.target.value.split(
+                                                                            ':'
+                                                                        );
+                                                                    const newDate =
+                                                                        field.value ||
+                                                                        new Date();
+                                                                    newDate.setHours(
+                                                                        parseInt(
+                                                                            hours
+                                                                        )
+                                                                    );
+                                                                    newDate.setMinutes(
+                                                                        parseInt(
+                                                                            minutes
+                                                                        )
+                                                                    );
+                                                                    field.onChange(
+                                                                        newDate
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="endTime"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>
+                                                End Time
+                                            </FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant={'outline'}
+                                                            className={cn(
+                                                                'w-full pl-3 text-left font-normal',
+                                                                !field.value &&
+                                                                    'text-muted-foreground'
+                                                            )}
+                                                        >
+                                                            {field.value ? (
+                                                                format(
+                                                                    field.value,
+                                                                    'PPP p'
+                                                                )
+                                                            ) : (
+                                                                <span>
+                                                                    Pick a date
+                                                                    and time
+                                                                </span>
+                                                            )}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent
+                                                    className="w-auto p-0 max-h-[480px] overflow-y-auto flex"
+                                                    align="start"
+                                                    side="bottom"
+                                                    sideOffset={4}
+                                                >
+                                                    <div className="max-h-[380px] overflow-y-auto">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={
+                                                                field.value
+                                                            }
+                                                            onSelect={date => {
+                                                                if (date) {
+                                                                    const currentTime =
+                                                                        field.value ||
+                                                                        new Date();
+                                                                    date.setHours(
+                                                                        currentTime.getHours()
+                                                                    );
+                                                                    date.setMinutes(
+                                                                        currentTime.getMinutes()
+                                                                    );
+                                                                    field.onChange(
+                                                                        date
+                                                                    );
+                                                                }
+                                                            }}
+                                                            disabled={date =>
+                                                                date <
+                                                                new Date(
+                                                                    new Date().setHours(
+                                                                        0,
+                                                                        0,
+                                                                        0,
+                                                                        0
+                                                                    )
+                                                                )
+                                                            }
+                                                            initialFocus
+                                                        />
+                                                    </div>
+                                                    <div className="p-3 border-l">
+                                                        <div className="space-y-2">
+                                                            <div className="text-sm font-medium">
+                                                                Time
+                                                            </div>
                                                             <Input
                                                                 type="time"
                                                                 value={

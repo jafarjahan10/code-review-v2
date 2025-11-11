@@ -66,6 +66,7 @@ export async function PATCH(
             positionId,
             problemId,
             scheduledTime,
+            endTime,
             regeneratePassword,
         } = body;
 
@@ -76,6 +77,7 @@ export async function PATCH(
             positionId?: string;
             problemId?: string;
             scheduledTime?: Date;
+            endTime?: Date;
             password?: string;
         } = {
             ...(name && { name }),
@@ -83,6 +85,7 @@ export async function PATCH(
             ...(positionId && { positionId }),
             ...(problemId && { problemId }),
             ...(scheduledTime && { scheduledTime: new Date(scheduledTime) }),
+            ...(endTime && { endTime: new Date(endTime) }),
         };
 
         let generatedPassword: string | undefined;

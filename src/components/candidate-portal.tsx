@@ -53,6 +53,7 @@ interface Candidate {
     name: string;
     email: string;
     scheduledTime: string;
+    endTime: string;
     startTime: string | null;
     submissionTime: string | null;
     problem: Problem;
@@ -257,13 +258,25 @@ export default function CandidatePortal() {
     if (candidate.submissionTime) {
         // Calculate total time taken
         const startTime = new Date(candidate.startTime!).getTime();
-        const endTime = new Date(candidate.submissionTime).getTime();
-        const totalTime = endTime - startTime;
+        const submissionTime = new Date(candidate.submissionTime).getTime();
+        const endTime = new Date(candidate.endTime).getTime();
+        const totalTime = submissionTime - startTime;
         
         const hours = Math.floor(totalTime / (1000 * 60 * 60));
         const minutes = Math.floor((totalTime % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((totalTime % (1000 * 60)) / 1000);
         const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        // Calculate extra time if submitted after end time
+        const submittedAfterEndTime = submissionTime > endTime;
+        let extraTimeFormatted = '';
+        if (submittedAfterEndTime) {
+            const extraTime = submissionTime - endTime;
+            const extraHours = Math.floor(extraTime / (1000 * 60 * 60));
+            const extraMinutes = Math.floor((extraTime % (1000 * 60 * 60)) / (1000 * 60));
+            const extraSeconds = Math.floor((extraTime % (1000 * 60)) / 1000);
+            extraTimeFormatted = `${String(extraHours).padStart(2, '0')}:${String(extraMinutes).padStart(2, '0')}:${String(extraSeconds).padStart(2, '0')}`;
+        }
 
         return (
             <div className="flex items-center justify-center h-full p-4">
@@ -300,6 +313,16 @@ export default function CandidatePortal() {
                                 </p>
                             </div>
                         </div>
+                        {submittedAfterEndTime && (
+                            <div className="rounded-lg bg-red-100 dark:bg-red-900/20 p-3 md:p-4 text-center border border-red-200 dark:border-red-800">
+                                <p className="text-xs md:text-sm text-red-600 dark:text-red-400 mb-1">
+                                    Extra Time (Overtime)
+                                </p>
+                                <p className="text-base md:text-lg font-semibold font-mono tabular-nums text-red-600 dark:text-red-500">
+                                    {extraTimeFormatted}
+                                </p>
+                            </div>
+                        )}
                         <div className="space-y-3 pt-2">
                             <div className="flex items-start gap-3 text-sm">
                                 <p className="text-muted-foreground">

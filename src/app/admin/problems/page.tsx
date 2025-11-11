@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Trash2, Loader2, Eye } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Plus, Pencil, Trash2, Loader2, Eye, ArrowUpDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,6 +26,13 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 
 interface Department {
@@ -78,15 +85,41 @@ const difficultyColors = {
 export default function ProblemsPage() {
     const { data: session } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const queryClient = useQueryClient();
-    const [page, setPage] = useState(1);
-    const [search, setSearch] = useState('');
-    const [searchInput, setSearchInput] = useState('');
+    
+    // Initialize state from URL params
+    const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+    const [difficultyFilter, setDifficultyFilter] = useState(searchParams.get('difficulty') || '');
+    const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('departmentId') || '');
+    const [positionFilter, setPositionFilter] = useState(searchParams.get('positionId') || '');
+    const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'createdAt');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>((searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc');
     const [deletingProblemId, setDeletingProblemId] = useState<string | null>(
         null
     );
 
     const isAdmin = session?.user?.userType === 'ADMIN';
+
+    // Update URL when state changes
+    useEffect(() => {
+        const params = new URLSearchParams();
+        
+        if (page !== 1) params.set('page', page.toString());
+        if (search) params.set('search', search);
+        if (difficultyFilter) params.set('difficulty', difficultyFilter);
+        if (departmentFilter) params.set('departmentId', departmentFilter);
+        if (positionFilter) params.set('positionId', positionFilter);
+        if (sortBy !== 'createdAt') params.set('sortBy', sortBy);
+        if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+
+        const queryString = params.toString();
+        const newUrl = queryString ? `/admin/problems?${queryString}` : '/admin/problems';
+        
+        router.replace(newUrl, { scroll: false });
+    }, [page, search, difficultyFilter, departmentFilter, positionFilter, sortBy, sortOrder, router]);
 
     // Debounced search effect
     useEffect(() => {
@@ -98,14 +131,39 @@ export default function ProblemsPage() {
         return () => clearTimeout(timer);
     }, [searchInput]);
 
+    // Fetch departments for filter
+    const { data: departmentsData } = useQuery({
+        queryKey: ['departments-list'],
+        queryFn: async () => {
+            const response = await fetch('/api/admin/departments?limit=100');
+            if (!response.ok) throw new Error('Failed to fetch departments');
+            return response.json();
+        },
+    });
+
+    // Fetch positions for filter
+    const { data: positionsData } = useQuery({
+        queryKey: ['positions-list'],
+        queryFn: async () => {
+            const response = await fetch('/api/admin/positions?limit=100');
+            if (!response.ok) throw new Error('Failed to fetch positions');
+            return response.json();
+        },
+    });
+
     // Fetch problems
     const { data, isLoading, error } = useQuery<PaginationData>({
-        queryKey: ['problems', page, search],
+        queryKey: ['problems', page, search, difficultyFilter, departmentFilter, positionFilter, sortBy, sortOrder],
         queryFn: async () => {
             const params = new URLSearchParams({
                 page: page.toString(),
                 limit: '5',
                 ...(search && { search }),
+                ...(difficultyFilter && { difficulty: difficultyFilter }),
+                ...(departmentFilter && { departmentId: departmentFilter }),
+                ...(positionFilter && { positionId: positionFilter }),
+                sortBy,
+                sortOrder,
             });
             const response = await fetch(`/api/admin/problems?${params}`);
             if (!response.ok) throw new Error('Failed to fetch problems');
@@ -141,6 +199,29 @@ export default function ProblemsPage() {
         }
     };
 
+    const handleSort = (column: string) => {
+        if (sortBy === column) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(column);
+            setSortOrder('asc');
+        }
+        setPage(1);
+    };
+
+    const clearFilters = () => {
+        setSearchInput('');
+        setSearch('');
+        setDifficultyFilter('');
+        setDepartmentFilter('');
+        setPositionFilter('');
+        setSortBy('createdAt');
+        setSortOrder('desc');
+        setPage(1);
+    };
+
+    const hasActiveFilters = search || difficultyFilter || departmentFilter || positionFilter || sortBy !== 'createdAt' || sortOrder !== 'desc';
+
     return (
         <div className="space-y-4 md:space-y-6">
             <div>
@@ -151,13 +232,82 @@ export default function ProblemsPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 md:gap-4">
-                <div className="flex items-center gap-2 flex-1 max-w-full sm:max-w-md">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
                     <Input
                         placeholder="Search problems..."
                         value={searchInput}
                         onChange={e => setSearchInput(e.target.value)}
-                        className="w-full"
+                        className="w-full sm:max-w-sm"
                     />
+                    
+                    <Select
+                        value={difficultyFilter}
+                        onValueChange={(value) => {
+                            setDifficultyFilter(value === 'all' ? '' : value);
+                            setPage(1);
+                        }}
+                    >
+                        <SelectTrigger className="w-full sm:w-[150px]">
+                            <SelectValue placeholder="All Difficulty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Difficulty</SelectItem>
+                            <SelectItem value="EASY">Easy</SelectItem>
+                            <SelectItem value="MEDIUM">Medium</SelectItem>
+                            <SelectItem value="HARD">Hard</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select
+                        value={departmentFilter}
+                        onValueChange={(value) => {
+                            setDepartmentFilter(value === 'all' ? '' : value);
+                            setPage(1);
+                        }}
+                    >
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="All Departments" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Departments</SelectItem>
+                            {departmentsData?.departments?.map((dept: { id: string; name: string }) => (
+                                <SelectItem key={dept.id} value={dept.id}>
+                                    {dept.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select
+                        value={positionFilter}
+                        onValueChange={(value) => {
+                            setPositionFilter(value === 'all' ? '' : value);
+                            setPage(1);
+                        }}
+                    >
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="All Positions" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Positions</SelectItem>
+                            {positionsData?.positions?.map((pos: { id: string; name: string }) => (
+                                <SelectItem key={pos.id} value={pos.id}>
+                                    {pos.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {hasActiveFilters && (
+                        <Button
+                            variant="outline"
+                            onClick={clearFilters}
+                            className="gap-2"
+                        >
+                            <X className="h-4 w-4" />
+                            Clear Filters
+                        </Button>
+                    )}
                 </div>
 
                 {isAdmin && (
@@ -176,12 +326,39 @@ export default function ProblemsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="min-w-[200px]">Title</TableHead>
-                                <TableHead className="min-w-[100px]">Difficulty</TableHead>
+                                <TableHead className="min-w-[200px]">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => handleSort('title')}
+                                        className="h-8 p-0 hover:bg-transparent"
+                                    >
+                                        Title
+                                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </TableHead>
+                                <TableHead className="min-w-[100px]">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => handleSort('difficulty')}
+                                        className="h-8 p-0 hover:bg-transparent"
+                                    >
+                                        Difficulty
+                                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </TableHead>
                                 <TableHead className="min-w-[150px]">Department</TableHead>
                                 <TableHead className="min-w-[150px]">Position</TableHead>
                                 <TableHead className="min-w-[150px]">Stacks</TableHead>
-                                <TableHead className="min-w-[120px]">Created At</TableHead>
+                                <TableHead className="min-w-[120px]">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => handleSort('createdAt')}
+                                        className="h-8 p-0 hover:bg-transparent"
+                                    >
+                                        Created At
+                                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </TableHead>
                                 {isAdmin && (
                                     <TableHead className="text-right min-w-[120px]">
                                         Actions
@@ -219,7 +396,11 @@ export default function ProblemsPage() {
                             </TableRow>
                         ) : (
                             data?.problems.map(problem => (
-                                <TableRow key={problem.id}>
+                                <TableRow 
+                                    key={problem.id}
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => router.push(`/admin/problems/${problem.id}`)}
+                                >
                                     <TableCell className="font-medium">
                                         {problem.title}
                                     </TableCell>
@@ -263,33 +444,36 @@ export default function ProblemsPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() =>
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         router.push(
                                                             `/admin/problems/${problem.id}`
-                                                        )
-                                                    }
+                                                        );
+                                                    }}
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() =>
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         router.push(
                                                             `/admin/problems/${problem.id}/edit`
-                                                        )
-                                                    }
+                                                        );
+                                                    }}
                                                 >
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() =>
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         setDeletingProblemId(
                                                             problem.id
-                                                        )
-                                                    }
+                                                        );
+                                                    }}
                                                 >
                                                     <Trash2 className="h-4 w-4 text-destructive" />
                                                 </Button>

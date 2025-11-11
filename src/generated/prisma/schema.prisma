@@ -154,6 +154,7 @@ model Candidate {
   positionId     String
   problemId      String
   scheduledTime  DateTime
+  endTime        DateTime // When the test should end
   startTime      DateTime? // When candidate starts the test
   submissionTime DateTime?
   department     Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)

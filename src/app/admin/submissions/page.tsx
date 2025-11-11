@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Eye, Trash2, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Eye, Trash2, CheckCircle2, XCircle, Clock, ArrowUpDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,6 +26,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 
 interface Submission {
@@ -133,11 +140,35 @@ function getStatusIcon(submission: Submission) {
 
 export default function SubmissionsPage() {
     const router = useRouter();
-    const [search, setSearch] = useState('');
-    const [searchInput, setSearchInput] = useState('');
-    const [page, setPage] = useState(1);
+    const searchParams = useSearchParams();
+    
+    // Initialize state from URL params
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+    const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [recommendationFilter, setRecommendationFilter] = useState(searchParams.get('recommendation') || '');
+    const [difficultyFilter, setDifficultyFilter] = useState(searchParams.get('difficulty') || '');
+    const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'submissionTime');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>((searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc');
     const limit = 5;
+
+    // Update URL when state changes
+    useEffect(() => {
+        const params = new URLSearchParams();
+        
+        if (page !== 1) params.set('page', page.toString());
+        if (search) params.set('search', search);
+        if (recommendationFilter) params.set('recommendation', recommendationFilter);
+        if (difficultyFilter) params.set('difficulty', difficultyFilter);
+        if (sortBy !== 'submissionTime') params.set('sortBy', sortBy);
+        if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+
+        const queryString = params.toString();
+        const newUrl = queryString ? `/admin/submissions?${queryString}` : '/admin/submissions';
+        
+        router.replace(newUrl, { scroll: false });
+    }, [page, search, recommendationFilter, difficultyFilter, sortBy, sortOrder, router]);
 
     // Debounced search effect
     useEffect(() => {
@@ -150,12 +181,16 @@ export default function SubmissionsPage() {
     }, [searchInput]);
 
     const { data, isLoading, refetch } = useQuery<SubmissionsResponse>({
-        queryKey: ['submissions', page, search],
+        queryKey: ['submissions', page, search, recommendationFilter, difficultyFilter, sortBy, sortOrder],
         queryFn: async () => {
             const params = new URLSearchParams({
                 page: page.toString(),
                 limit: limit.toString(),
                 ...(search && { search }),
+                ...(recommendationFilter && { recommendation: recommendationFilter }),
+                ...(difficultyFilter && { difficulty: difficultyFilter }),
+                sortBy,
+                sortOrder,
             });
             const response = await fetch(
                 `/api/admin/submissions?${params.toString()}`
@@ -187,6 +222,28 @@ export default function SubmissionsPage() {
         }
     };
 
+    const handleSort = (column: string) => {
+        if (sortBy === column) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(column);
+            setSortOrder('asc');
+        }
+        setPage(1);
+    };
+
+    const clearFilters = () => {
+        setSearchInput('');
+        setSearch('');
+        setRecommendationFilter('');
+        setDifficultyFilter('');
+        setSortBy('submissionTime');
+        setSortOrder('desc');
+        setPage(1);
+    };
+
+    const hasActiveFilters = search || recommendationFilter || difficultyFilter || sortBy !== 'submissionTime' || sortOrder !== 'desc';
+
     const formatDate = (date: string) => {
         return new Date(date).toLocaleString('en-US', {
             year: 'numeric',
@@ -208,13 +265,60 @@ export default function SubmissionsPage() {
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <Input
                     placeholder="Search by candidate name or email..."
                     value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
                     className="max-w-sm"
                 />
+                
+                <Select
+                    value={recommendationFilter}
+                    onValueChange={(value) => {
+                        setRecommendationFilter(value === 'all' ? '' : value);
+                        setPage(1);
+                    }}
+                >
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                        <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="not-recommended">Not Recommended</SelectItem>
+                        <SelectItem value="recommended">Recommended</SelectItem>
+                    </SelectContent>
+                </Select>
+
+                <Select
+                    value={difficultyFilter}
+                    onValueChange={(value) => {
+                        setDifficultyFilter(value === 'all' ? '' : value);
+                        setPage(1);
+                    }}
+                >
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="All Difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Difficulty</SelectItem>
+                        <SelectItem value="EASY">Easy</SelectItem>
+                        <SelectItem value="MEDIUM">Medium</SelectItem>
+                        <SelectItem value="HARD">Hard</SelectItem>
+                    </SelectContent>
+                </Select>
+
+                {hasActiveFilters && (
+                    <Button
+                        variant="outline"
+                        onClick={clearFilters}
+                        className="gap-2"
+                    >
+                        <X className="h-4 w-4" />
+                        Clear Filters
+                    </Button>
+                )}
             </div>
 
             {isLoading ? (
@@ -227,11 +331,29 @@ export default function SubmissionsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Candidate</TableHead>
+                                    <TableHead>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => handleSort('candidateName')}
+                                            className="h-8 p-0 hover:bg-transparent"
+                                        >
+                                            Candidate
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </TableHead>
                                     <TableHead>Problem</TableHead>
                                     <TableHead>Position</TableHead>
                                     <TableHead>Department</TableHead>
-                                    <TableHead>Submission Time</TableHead>
+                                    <TableHead>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => handleSort('submissionTime')}
+                                            className="h-8 p-0 hover:bg-transparent"
+                                        >
+                                            Submission Time
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </TableHead>
                                     <TableHead>Remarks</TableHead>
                                     <TableHead className="text-center">Status</TableHead>
                                     <TableHead className="text-right">
@@ -251,7 +373,11 @@ export default function SubmissionsPage() {
                                     </TableRow>
                                 ) : (
                                     data?.submissions.map(submission => (
-                                        <TableRow key={submission.id}>
+                                        <TableRow 
+                                            key={submission.id}
+                                            className="cursor-pointer hover:bg-muted/50"
+                                            onClick={() => router.push(`/admin/submissions/${submission.id}`)}
+                                        >
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-10 w-10">
@@ -349,22 +475,24 @@ export default function SubmissionsPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        onClick={() =>
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             router.push(
                                                                 `/admin/submissions/${submission.id}`
-                                                            )
-                                                        }
+                                                            );
+                                                        }}
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        onClick={() =>
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setDeleteId(
                                                                 submission.id
-                                                            )
-                                                        }
+                                                            );
+                                                        }}
                                                     >
                                                         <Trash2 className="h-4 w-4 text-destructive" />
                                                     </Button>
