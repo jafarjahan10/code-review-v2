@@ -216,6 +216,7 @@ exports.Prisma.CandidateScalarFieldEnum = {
   positionId: 'positionId',
   problemId: 'problemId',
   scheduledTime: 'scheduledTime',
+  endTime: 'endTime',
   startTime: 'startTime',
   submissionTime: 'submissionTime',
   createdAt: 'createdAt',

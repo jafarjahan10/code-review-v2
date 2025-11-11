@@ -32,6 +32,7 @@ import {
     Sheet,
     SheetContent,
     SheetTrigger,
+    SheetTitle,
 } from './ui/sheet';
 
 interface NavLink {
@@ -82,11 +83,12 @@ export default function MobileAdminNav() {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="lg:hidden">
                     <Menu className="h-5 w-5" />
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 p-0">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <nav className="flex flex-col h-full bg-background">
                     <div className="p-5">
                         <h2 className="text-2xl font-bold font-space text-center">

@@ -29,10 +29,14 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(searchParams.get('limit') || '5');
         const search = searchParams.get('search') || '';
         const positionId = searchParams.get('positionId') || '';
+        const departmentId = searchParams.get('departmentId') || '';
+        const difficulty = searchParams.get('difficulty') || '';
+        const sortBy = searchParams.get('sortBy') || 'createdAt';
+        const sortOrder = searchParams.get('sortOrder') || 'desc';
 
         const skip = (page - 1) * limit;
 
-        const where = {
+        const where: Record<string, unknown> = {
             ...(search && {
                 OR: [
                     { title: { contains: search, mode: 'insensitive' as const } },
@@ -44,9 +48,13 @@ export async function GET(request: NextRequest) {
                     },
                 ],
             }),
-            ...(positionId && {
-                positionId: positionId,
-            }),
+            ...(positionId && { positionId }),
+            ...(departmentId && { departmentId }),
+            ...(difficulty && { difficulty: difficulty as 'EASY' | 'MEDIUM' | 'HARD' }),
+        };
+
+        const orderBy: Record<string, 'asc' | 'desc'> = {
+            [sortBy]: sortOrder as 'asc' | 'desc'
         };
 
         const [problems, total] = await Promise.all([
@@ -54,7 +62,7 @@ export async function GET(request: NextRequest) {
                 where,
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
+                orderBy,
                 include: {
                     department: {
                         select: {

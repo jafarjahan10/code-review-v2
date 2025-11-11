@@ -1,6 +1,6 @@
 'use client';
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
+import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
     email: z.string().email('Please enter a valid email address'),
@@ -23,7 +24,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/';
@@ -122,7 +123,9 @@ export default function LoginPage() {
                                             type="email"
                                             placeholder="candidate@example.com"
                                             {...field}
-                                            disabled={form.formState.isSubmitting}
+                                            disabled={
+                                                form.formState.isSubmitting
+                                            }
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -141,7 +144,9 @@ export default function LoginPage() {
                                             type="password"
                                             placeholder="Enter your password"
                                             {...field}
-                                            disabled={form.formState.isSubmitting}
+                                            disabled={
+                                                form.formState.isSubmitting
+                                            }
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -150,18 +155,36 @@ export default function LoginPage() {
                         />
 
                         <Button
-                            className='text-muted'
+                            className="text-muted"
                             type="submit"
                             style={{ width: '100%' }}
                             disabled={form.formState.isSubmitting}
                         >
-                            {form.formState.isSubmitting
-                                ? 'Signing in...'
-                                : 'Sign In'}
+                            {form.formState.isSubmitting && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            Sign In
                         </Button>
                     </form>
                 </Form>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div style={{
+                display: 'flex',
+                minHeight: '100vh',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        }>
+            <LoginPageContent />
+        </Suspense>
     );
 }

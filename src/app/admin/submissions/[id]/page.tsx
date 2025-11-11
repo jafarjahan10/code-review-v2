@@ -4,7 +4,16 @@ import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, Send, Pencil, Trash2, X, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import {
+    ArrowLeft,
+    Send,
+    Pencil,
+    Trash2,
+    X,
+    CheckCircle2,
+    XCircle,
+    Clock,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -33,6 +42,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Editor from '@monaco-editor/react';
 import { useTheme } from 'next-themes';
+import { SubmissionViewSkeleton } from '@/components/skeletons';
 
 interface Answer {
     stackName: string;
@@ -184,7 +194,7 @@ export default function SubmissionDetailPage({
             const response = await fetch(`/api/admin/submissions/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     remark: { text: data.text },
                     recommendedForNextStep: data.recommendedForNextStep,
                 }),
@@ -209,7 +219,13 @@ export default function SubmissionDetailPage({
     });
 
     const editRemarkMutation = useMutation({
-        mutationFn: async ({ remarkId, text }: { remarkId: string; text: string }) => {
+        mutationFn: async ({
+            remarkId,
+            text,
+        }: {
+            remarkId: string;
+            text: string;
+        }) => {
             const response = await fetch(`/api/admin/submissions/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -275,7 +291,9 @@ export default function SubmissionDetailPage({
             });
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'Failed to update recommendation');
+                throw new Error(
+                    error.error || 'Failed to update recommendation'
+                );
             }
             return response.json();
         },
@@ -301,7 +319,10 @@ export default function SubmissionDetailPage({
 
     const handleSaveEdit = () => {
         if (!editingRemarkId || !editText.trim()) return;
-        editRemarkMutation.mutate({ remarkId: editingRemarkId, text: editText });
+        editRemarkMutation.mutate({
+            remarkId: editingRemarkId,
+            text: editText,
+        });
     };
 
     const handleCancelEdit = () => {
@@ -320,16 +341,12 @@ export default function SubmissionDetailPage({
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            </div>
-        );
+        return <SubmissionViewSkeleton />;
     }
 
     if (!submission) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <div className="flex flex-col items-center justify-center">
                 <p className="text-muted-foreground">Submission not found</p>
                 <Button
                     variant="outline"
@@ -348,7 +365,7 @@ export default function SubmissionDetailPage({
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
                         onClick={() => router.push('/admin/submissions')}
                     >
@@ -366,9 +383,17 @@ export default function SubmissionDetailPage({
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Recommend:</span>
                     <Button
-                        variant={submission.recommendedForNextStep ? "default" : "outline"}
+                        variant={
+                            submission.recommendedForNextStep
+                                ? 'default'
+                                : 'outline'
+                        }
                         size="sm"
-                        onClick={() => handleToggleRecommendation(!submission.recommendedForNextStep)}
+                        onClick={() =>
+                            handleToggleRecommendation(
+                                !submission.recommendedForNextStep
+                            )
+                        }
                         className="gap-2"
                     >
                         {submission.recommendedForNextStep ? (
@@ -400,7 +425,9 @@ export default function SubmissionDetailPage({
                                         )}
                                     >
                                         <span className="text-white font-semibold text-lg">
-                                            {getInitials(submission.candidate.name)}
+                                            {getInitials(
+                                                submission.candidate.name
+                                            )}
                                         </span>
                                     </AvatarFallback>
                                 </Avatar>
@@ -416,38 +443,59 @@ export default function SubmissionDetailPage({
                             <Separator />
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-sm text-muted-foreground mb-1">Position</p>
-                                    <p className="font-medium">{submission.candidate.position.name}</p>
+                                    <p className="text-sm text-muted-foreground mb-1">
+                                        Position
+                                    </p>
+                                    <p className="font-medium">
+                                        {submission.candidate.position.name}
+                                    </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground mb-1">Department</p>
-                                    <p className="font-medium">{submission.candidate.department.name}</p>
+                                    <p className="text-sm text-muted-foreground mb-1">
+                                        Department
+                                    </p>
+                                    <p className="font-medium">
+                                        {submission.candidate.department.name}
+                                    </p>
                                 </div>
                             </div>
                             <Separator />
                             <div>
-                                <p className="text-sm text-muted-foreground mb-2">Recommendation Status</p>
-                                <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-md font-medium ${
-                                    submission.recommendedForNextStep
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                        : (Array.isArray(submission.remarks) && submission.remarks.length > 0)
-                                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                }`}>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                    Recommendation Status
+                                </p>
+                                <div
+                                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-md font-medium ${
+                                        submission.recommendedForNextStep
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                            : Array.isArray(
+                                                  submission.remarks
+                                              ) && submission.remarks.length > 0
+                                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                    }`}
+                                >
                                     {submission.recommendedForNextStep ? (
                                         <>
                                             <CheckCircle2 className="h-4 w-4" />
-                                            <span className="text-sm">Recommended for Next Step</span>
+                                            <span className="text-sm">
+                                                Recommended for Next Step
+                                            </span>
                                         </>
-                                    ) : (Array.isArray(submission.remarks) && submission.remarks.length > 0) ? (
+                                    ) : Array.isArray(submission.remarks) &&
+                                      submission.remarks.length > 0 ? (
                                         <>
                                             <XCircle className="h-4 w-4" />
-                                            <span className="text-sm">Not Recommended</span>
+                                            <span className="text-sm">
+                                                Not Recommended
+                                            </span>
                                         </>
                                     ) : (
                                         <>
                                             <Clock className="h-4 w-4" />
-                                            <span className="text-sm">Pending Review</span>
+                                            <span className="text-sm">
+                                                Pending Review
+                                            </span>
                                         </>
                                     )}
                                 </div>
@@ -463,23 +511,43 @@ export default function SubmissionDetailPage({
                                     <h3 className="text-xl font-semibold">
                                         {submission.candidate.problem.title}
                                     </h3>
-                                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                        submission.candidate.problem.difficulty === 'EASY' 
-                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                            : submission.candidate.problem.difficulty === 'MEDIUM'
-                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                    }`}>
-                                        {submission.candidate.problem.difficulty}
+                                    <span
+                                        className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                            submission.candidate.problem
+                                                .difficulty === 'EASY'
+                                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                : submission.candidate.problem
+                                                      .difficulty === 'MEDIUM'
+                                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                        }`}
+                                    >
+                                        {
+                                            submission.candidate.problem
+                                                .difficulty
+                                        }
                                     </span>
                                 </div>
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => router.push(`/admin/problems/${submission.problemId}`)}
+                                    onClick={() =>
+                                        router.push(
+                                            `/admin/problems/${submission.problemId}`
+                                        )
+                                    }
                                     className="w-full"
                                 >
-                                    <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg
+                                        className="mr-2 h-4 w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
                                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                                         <polyline points="15 3 21 3 21 9" />
                                         <line x1="10" x2="21" y1="14" y2="3" />
@@ -489,21 +557,29 @@ export default function SubmissionDetailPage({
                             </div>
                             <Separator />
                             <div>
-                                <p className="text-sm text-muted-foreground mb-2">Required Stacks</p>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                    Required Stacks
+                                </p>
                                 <div className="flex flex-wrap gap-2">
-                                    {submission.candidate.problem.stacks.map(({ stack }) => (
-                                        <span
-                                            key={stack.id}
-                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
-                                        >
-                                            {stack.name}
-                                        </span>
-                                    ))}
+                                    {submission.candidate.problem.stacks.map(
+                                        ({ stack }) => (
+                                            <span
+                                                key={stack.id}
+                                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
+                                            >
+                                                {stack.name}
+                                            </span>
+                                        )
+                                    )}
                                 </div>
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Submitted on</p>
-                                <p className="font-medium">{formatDate(submission.submissionTime)}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Submitted on
+                                </p>
+                                <p className="font-medium">
+                                    {formatDate(submission.submissionTime)}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -511,36 +587,49 @@ export default function SubmissionDetailPage({
             </Card>
 
             {/* Two Column Layout - Code and Remarks */}
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
+            <div className="grid gap-6 lg:grid-cols-[1fr_400px] items-start">
                 {/* Left Column - Submitted Code */}
-                <Card className="flex flex-col">
+                <Card className="self-start min-h-0">
                     <CardHeader>
                         <CardTitle>Submitted Code</CardTitle>
                         <CardDescription>
                             Solutions for each stack
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col">
-                        <Tabs defaultValue={submission.answers[0]?.stackName || ''} className="flex-1 flex flex-col">
+                    <CardContent>
+                        <Tabs
+                            defaultValue={
+                                submission.answers[0]?.stackName || ''
+                            }
+                        >
                             <TabsList className="w-full justify-start">
                                 {submission.answers.map((answer, index) => (
-                                    <TabsTrigger key={index} value={answer.stackName}>
+                                    <TabsTrigger
+                                        key={index}
+                                        value={answer.stackName}
+                                    >
                                         {answer.stackName}
                                     </TabsTrigger>
                                 ))}
                             </TabsList>
                             {submission.answers.map((answer, index) => (
-                                <TabsContent 
-                                    key={index} 
+                                <TabsContent
+                                    key={index}
                                     value={answer.stackName}
-                                    className="flex-1 mt-4 data-[state=active]:flex data-[state=active]:flex-col"
+                                    className="mt-4"
                                 >
-                                    <div className="flex-1 border rounded-md overflow-hidden">
+                                    <div className="border rounded-md overflow-hidden">
                                         <Editor
                                             height="500px"
-                                            language={getLanguage(answer.stackName)}
+                                            language={getLanguage(
+                                                answer.stackName
+                                            )}
                                             value={answer.code}
-                                            theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                                            theme={
+                                                theme === 'dark'
+                                                    ? 'vs-dark'
+                                                    : 'light'
+                                            }
                                             options={{
                                                 readOnly: true,
                                                 minimap: { enabled: false },
@@ -560,7 +649,7 @@ export default function SubmissionDetailPage({
                 </Card>
 
                 {/* Right Column - Interviewer Remarks */}
-                <div className="space-y-6">
+                <div className="space-y-6 self-start">
                     <Card>
                         <CardHeader>
                             <CardTitle>Interviewer Remarks</CardTitle>
@@ -585,7 +674,9 @@ export default function SubmissionDetailPage({
                                                         )}
                                                     >
                                                         <span className="text-white font-semibold text-sm">
-                                                            {getInitials(remark.adminName)}
+                                                            {getInitials(
+                                                                remark.adminName
+                                                            )}
                                                         </span>
                                                     </AvatarFallback>
                                                 </Avatar>
@@ -593,20 +684,31 @@ export default function SubmissionDetailPage({
                                                     <div className="flex items-center justify-between">
                                                         <div>
                                                             <p className="font-semibold text-sm">
-                                                                {remark.adminName}
+                                                                {
+                                                                    remark.adminName
+                                                                }
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                {formatDate(remark.createdAt)}
-                                                                {remark.updatedAt && ' (edited)'}
+                                                                {formatDate(
+                                                                    remark.createdAt
+                                                                )}
+                                                                {remark.updatedAt &&
+                                                                    ' (edited)'}
                                                             </p>
                                                         </div>
-                                                        {session?.user?.email === remark.adminEmail && (
+                                                        {session?.user
+                                                            ?.email ===
+                                                            remark.adminEmail && (
                                                             <div className="flex gap-1">
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="icon"
                                                                     className="h-7 w-7"
-                                                                    onClick={() => handleEditRemark(remark)}
+                                                                    onClick={() =>
+                                                                        handleEditRemark(
+                                                                            remark
+                                                                        )
+                                                                    }
                                                                 >
                                                                     <Pencil className="h-3.5 w-3.5" />
                                                                 </Button>
@@ -614,33 +716,49 @@ export default function SubmissionDetailPage({
                                                                     variant="ghost"
                                                                     size="icon"
                                                                     className="h-7 w-7 text-destructive"
-                                                                    onClick={() => handleDeleteRemark(remark.id)}
+                                                                    onClick={() =>
+                                                                        handleDeleteRemark(
+                                                                            remark.id
+                                                                        )
+                                                                    }
                                                                 >
                                                                     <Trash2 className="h-3.5 w-3.5" />
                                                                 </Button>
                                                             </div>
                                                         )}
                                                     </div>
-                                                    {editingRemarkId === remark.id ? (
+                                                    {editingRemarkId ===
+                                                    remark.id ? (
                                                         <div className="space-y-2">
                                                             <Textarea
                                                                 value={editText}
-                                                                onChange={(e) => setEditText(e.target.value)}
+                                                                onChange={e =>
+                                                                    setEditText(
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                }
                                                                 rows={3}
                                                                 className="text-sm"
                                                             />
                                                             <div className="flex gap-2">
                                                                 <Button
                                                                     size="sm"
-                                                                    onClick={handleSaveEdit}
-                                                                    disabled={!editText.trim()}
+                                                                    onClick={
+                                                                        handleSaveEdit
+                                                                    }
+                                                                    disabled={
+                                                                        !editText.trim()
+                                                                    }
                                                                 >
                                                                     Save
                                                                 </Button>
                                                                 <Button
                                                                     size="sm"
                                                                     variant="outline"
-                                                                    onClick={handleCancelEdit}
+                                                                    onClick={
+                                                                        handleCancelEdit
+                                                                    }
                                                                 >
                                                                     <X className="h-4 w-4 mr-1" />
                                                                     Cancel
@@ -666,19 +784,31 @@ export default function SubmissionDetailPage({
                         </CardContent>
                     </Card>
 
-                    {session?.user?.email && 
-                     submission.remarks.some(remark => remark.adminEmail === session.user.email) ? (
+                    {session?.user?.email &&
+                    submission.remarks.some(
+                        remark => remark.adminEmail === session.user.email
+                    ) ? (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg
+                                        className="h-5 w-5 text-green-500"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
                                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                         <polyline points="22 4 12 14.01 9 11.01" />
                                     </svg>
                                     Remark Submitted
                                 </CardTitle>
                                 <CardDescription>
-                                    You have already provided feedback for this submission.
+                                    You have already provided feedback for this
+                                    submission.
                                 </CardDescription>
                             </CardHeader>
                         </Card>
@@ -701,7 +831,9 @@ export default function SubmissionDetailPage({
                                             name="text"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Remark</FormLabel>
+                                                    <FormLabel>
+                                                        Remark
+                                                    </FormLabel>
                                                     <FormControl>
                                                         <Textarea
                                                             {...field}
@@ -717,25 +849,33 @@ export default function SubmissionDetailPage({
                                             control={form.control}
                                             name="recommendedForNextStep"
                                             render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                                <FormItem className="relative flex flex-row items-start gap-3 rounded-md border p-4">
                                                     <FormControl>
                                                         <Checkbox
-                                                            checked={field.value}
-                                                            onCheckedChange={field.onChange}
+                                                            checked={
+                                                                field.value
+                                                            }
+                                                            onCheckedChange={
+                                                                field.onChange
+                                                            }
                                                         />
                                                     </FormControl>
                                                     <div className="space-y-1 leading-none">
                                                         <FormLabel>
-                                                            Recommend for next step
+                                                            Recommend for next
+                                                            step
                                                         </FormLabel>
                                                         <p className="text-sm text-muted-foreground">
-                                                            Check this if you recommend this candidate to proceed to the next round
+                                                            Check this if you
+                                                            recommend this
+                                                            candidate to proceed
+                                                            to the next round
                                                         </p>
                                                     </div>
                                                 </FormItem>
                                             )}
                                         />
-                                        <Button 
+                                        <Button
                                             type="submit"
                                             className="w-full text-muted"
                                             disabled={isSubmitting}

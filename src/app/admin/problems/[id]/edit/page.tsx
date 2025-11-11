@@ -9,6 +9,7 @@ import * as z from 'zod';
 import { ArrowLeft, Loader2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ProblemFormSkeleton } from '@/components/skeletons';
 import {
     Select,
     SelectContent,
@@ -19,7 +20,6 @@ import {
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -200,11 +200,7 @@ export default function EditProblemPage({
     };
 
     if (problemLoading) {
-        return (
-            <div className="flex items-center justify-center h-96">
-                <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-        );
+        return <ProblemFormSkeleton />;
     }
 
     if (!problem) {

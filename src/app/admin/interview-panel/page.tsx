@@ -44,6 +44,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { InterviewPanelSkeleton } from '@/components/skeletons';
 
 interface User {
     id: string;
@@ -80,9 +81,11 @@ const getGradientColor = (id: string) => {
         'linear-gradient(135deg, #FF0844 0%, #FFB199 100%)', // Red to Peach
         'linear-gradient(135deg, #00F260 0%, #0575E6 100%)', // Green to Blue
     ];
-    
+
     // Use the ID to consistently pick the same gradient for the same user
-    const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hash = id
+        .split('')
+        .reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return gradients[hash % gradients.length];
 };
 
@@ -103,6 +106,7 @@ export default function InterviewPanelPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(5);
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -129,11 +133,11 @@ export default function InterviewPanelPage() {
 
     // Fetch users
     const { data, isLoading, error } = useQuery<PaginationData>({
-        queryKey: ['interview-panel', page, search],
+        queryKey: ['interview-panel', page, search, limit],
         queryFn: async () => {
             const params = new URLSearchParams({
                 page: page.toString(),
-                limit: '5',
+                limit: limit.toString(),
                 ...(search && { search }),
             });
             const response = await fetch(
@@ -239,320 +243,380 @@ export default function InterviewPanelPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Interview Panel
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage interview panel members and their roles
-                </p>
-            </div>
+            {isLoading ? (
+                <InterviewPanelSkeleton />
+            ) : (
+                <>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Interview Panel
+                        </h1>
+                        <p className="text-muted-foreground mt-2">
+                            Manage interview panel members and their roles
+                        </p>
+                    </div>
 
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2 flex-1 max-w-md">
-                    <Input
-                        placeholder="Search by name or email..."
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                    />
-                </div>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 flex-1 max-w-md">
+                            <Input
+                                placeholder="Search by name or email..."
+                                value={searchInput}
+                                onChange={e => setSearchInput(e.target.value)}
+                            />
+                        </div>
 
-                {isAdmin && (
+                        {isAdmin && (
+                            <Dialog
+                                open={isAddModalOpen}
+                                onOpenChange={setIsAddModalOpen}
+                            >
+                                <DialogTrigger asChild>
+                                    <Button className="text-muted">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add User
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Add New User</DialogTitle>
+                                        <DialogDescription>
+                                            Create a new interview panel member
+                                            with USER role by default
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Name</Label>
+                                            <Input
+                                                id="name"
+                                                value={newUser.name}
+                                                onChange={e =>
+                                                    setNewUser({
+                                                        ...newUser,
+                                                        name: e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Enter name"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Email</Label>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                value={newUser.email}
+                                                onChange={e =>
+                                                    setNewUser({
+                                                        ...newUser,
+                                                        email: e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Enter email"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="password">
+                                                Password
+                                            </Label>
+                                            <Input
+                                                id="password"
+                                                type="password"
+                                                value={newUser.password}
+                                                onChange={e =>
+                                                    setNewUser({
+                                                        ...newUser,
+                                                        password:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Enter password"
+                                            />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() =>
+                                                setIsAddModalOpen(false)
+                                            }
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            className="text-muted"
+                                            onClick={handleAddUser}
+                                            disabled={
+                                                createUserMutation.isPending
+                                            }
+                                        >
+                                            {createUserMutation.isPending && (
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            )}
+                                            Add User
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                    </div>
+                    <div className="border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead>Created At</TableHead>
+                                    {isAdmin && (
+                                        <TableHead className="text-right">
+                                            Actions
+                                        </TableHead>
+                                    )}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {error ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={isAdmin ? 5 : 4}
+                                            className="text-center py-8 text-destructive"
+                                        >
+                                            Error loading users
+                                        </TableCell>
+                                    </TableRow>
+                                ) : data?.users.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={isAdmin ? 5 : 4}
+                                            className="text-center py-8 text-muted-foreground"
+                                        >
+                                            No users found
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    data?.users.map(user => (
+                                        <TableRow key={user.id}>
+                                            <TableCell className="font-medium">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarFallback
+                                                            style={{
+                                                                background:
+                                                                    getGradientColor(
+                                                                        user.id
+                                                                    ),
+                                                            }}
+                                                            className="text-white text-xs font-semibold"
+                                                        >
+                                                            {getInitials(
+                                                                user.name,
+                                                                user.email
+                                                            )}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <span>
+                                                        {user.name || 'N/A'}
+                                                    </span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>{user.email}</TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant={
+                                                        user.adminRole ===
+                                                        'ADMIN'
+                                                            ? 'default'
+                                                            : 'secondary'
+                                                    }
+                                                >
+                                                    {user.adminRole}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                {new Date(
+                                                    user.createdAt
+                                                ).toLocaleDateString()}
+                                            </TableCell>
+                                            {isAdmin && (
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                setEditingUser(
+                                                                    user
+                                                                )
+                                                            }
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                setDeletingUserId(
+                                                                    user.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            )}
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Pagination */}
+                    {data && (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <p className="text-sm text-muted-foreground">
+                                    Showing {(page - 1) * limit + 1} to{' '}
+                                    {Math.min(page * limit, data.total)} of{' '}
+                                    {data.total} users
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">
+                                        Rows per page:
+                                    </span>
+                                    <Select
+                                        value={limit.toString()}
+                                        onValueChange={value => {
+                                            setLimit(parseInt(value));
+                                            setPage(1);
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-[70px] h-8">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5">5</SelectItem>
+                                            <SelectItem value="10">
+                                                10
+                                            </SelectItem>
+                                            <SelectItem value="20">
+                                                20
+                                            </SelectItem>
+                                            <SelectItem value="50">
+                                                50
+                                            </SelectItem>
+                                            <SelectItem value="100">
+                                                100
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            {data.totalPages > 1 && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(page - 1)}
+                                        disabled={page === 1}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(page + 1)}
+                                        disabled={page === data.totalPages}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Edit User Dialog */}
                     <Dialog
-                        open={isAddModalOpen}
-                        onOpenChange={setIsAddModalOpen}
+                        open={editingUser !== null}
+                        onOpenChange={open => !open && setEditingUser(null)}
                     >
-                        <DialogTrigger asChild>
-                            <Button className='text-muted'>
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add User
-                            </Button>
-                        </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Add New User</DialogTitle>
+                                <DialogTitle>Update User Role</DialogTitle>
                                 <DialogDescription>
-                                    Create a new interview panel member with
-                                    USER role by default
+                                    Change the role for {editingUser?.name}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input
-                                        id="name"
-                                        value={newUser.name}
-                                        onChange={(e) =>
-                                            setNewUser({
-                                                ...newUser,
-                                                name: e.target.value,
-                                            })
+                                    <Label>Role</Label>
+                                    <Select
+                                        value={
+                                            editingUser?.adminRole || undefined
                                         }
-                                        placeholder="Enter name"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={newUser.email}
-                                        onChange={(e) =>
-                                            setNewUser({
-                                                ...newUser,
-                                                email: e.target.value,
-                                            })
+                                        onValueChange={value =>
+                                            handleUpdateRole(
+                                                value as 'ADMIN' | 'USER'
+                                            )
                                         }
-                                        placeholder="Enter email"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="password">Password</Label>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        value={newUser.password}
-                                        onChange={(e) =>
-                                            setNewUser({
-                                                ...newUser,
-                                                password: e.target.value,
-                                            })
-                                        }
-                                        placeholder="Enter password"
-                                    />
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="USER">
+                                                USER
+                                            </SelectItem>
+                                            <SelectItem value="ADMIN">
+                                                ADMIN
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
                             <DialogFooter>
                                 <Button
                                     variant="outline"
-                                    onClick={() => setIsAddModalOpen(false)}
+                                    onClick={() => setEditingUser(null)}
                                 >
                                     Cancel
-                                </Button>
-                                <Button
-                                    className="text-muted"
-                                    onClick={handleAddUser}
-                                    disabled={createUserMutation.isPending}
-                                >
-                                    {createUserMutation.isPending && (
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    )}
-                                    Add User
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
-                )}
-            </div>
 
-            <div className="border rounded-lg">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Created At</TableHead>
-                            {isAdmin && (
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            )}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 5 : 4}
-                                    className="text-center py-8"
+                    {/* Delete Confirmation Dialog */}
+                    <AlertDialog
+                        open={deletingUserId !== null}
+                        onOpenChange={open => !open && setDeletingUserId(null)}
+                    >
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Are you sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete the user account.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleDeleteUser}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                                </TableCell>
-                            </TableRow>
-                        ) : error ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 5 : 4}
-                                    className="text-center py-8 text-destructive"
-                                >
-                                    Error loading users
-                                </TableCell>
-                            </TableRow>
-                        ) : data?.users.length === 0 ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 5 : 4}
-                                    className="text-center py-8 text-muted-foreground"
-                                >
-                                    No users found
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            data?.users.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarFallback
-                                                    style={{
-                                                        background: getGradientColor(user.id),
-                                                    }}
-                                                    className="text-white text-xs font-semibold"
-                                                >
-                                                    {getInitials(user.name, user.email)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <span>{user.name || 'N/A'}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                user.adminRole === 'ADMIN'
-                                                    ? 'default'
-                                                    : 'secondary'
-                                            }
-                                        >
-                                            {user.adminRole}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Date(
-                                            user.createdAt
-                                        ).toLocaleDateString()}
-                                    </TableCell>
-                                    {isAdmin && (
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        setEditingUser(user)
-                                                    }
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        setDeletingUserId(
-                                                            user.id
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
+                                    {deleteUserMutation.isPending && (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                     )}
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* Pagination */}
-            {data && data.totalPages > 1 && (
-                <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                        Showing {(page - 1) * 5 + 1} to{' '}
-                        {Math.min(page * 5, data.total)} of {data.total} users
-                    </p>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPage(page - 1)}
-                            disabled={page === 1}
-                        >
-                            Previous
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPage(page + 1)}
-                            disabled={page === data.totalPages}
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </div>
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
             )}
-
-            {/* Edit Role Dialog */}
-            <Dialog
-                open={editingUser !== null}
-                onOpenChange={(open) => !open && setEditingUser(null)}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Update User Role</DialogTitle>
-                        <DialogDescription>
-                            Change the role for {editingUser?.name}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Role</Label>
-                            <Select
-                                value={editingUser?.adminRole || undefined}
-                                onValueChange={(value) =>
-                                    handleUpdateRole(value as 'ADMIN' | 'USER')
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="USER">USER</SelectItem>
-                                    <SelectItem value="ADMIN">ADMIN</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setEditingUser(null)}
-                        >
-                            Cancel
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <AlertDialog
-                open={deletingUserId !== null}
-                onOpenChange={(open) => !open && setDeletingUserId(null)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the user account.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDeleteUser}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            {deleteUserMutation.isPending && (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            )}
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 }

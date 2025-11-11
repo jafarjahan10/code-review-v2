@@ -46,7 +46,7 @@ export async function GET() {
 
         // Get recent candidates
         const recentCandidates = await prisma.candidate.findMany({
-            take: 5,
+            take: 3,
             orderBy: {
                 createdAt: 'desc',
             },
@@ -59,7 +59,7 @@ export async function GET() {
 
         // Get recent submissions
         const recentSubmissions = await prisma.submission.findMany({
-            take: 5,
+            take: 3,
             orderBy: {
                 submissionTime: 'desc',
             },

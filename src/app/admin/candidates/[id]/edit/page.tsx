@@ -42,6 +42,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { CandidateFormSkeleton } from '@/components/skeletons';
 
 const formSchema = z.object({
     name: z.string().min(1, 'Name is required'),
@@ -49,6 +50,7 @@ const formSchema = z.object({
     positionId: z.string().min(1, 'Position is required'),
     problemId: z.string().min(1, 'Problem is required'),
     scheduledTime: z.date(),
+    endTime: z.date(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -73,6 +75,7 @@ export default function EditCandidatePage({
             positionId: '',
             problemId: '',
             scheduledTime: undefined,
+            endTime: undefined,
         },
     });
 
@@ -135,6 +138,7 @@ export default function EditCandidatePage({
     useEffect(() => {
         if (candidate) {
             const scheduledTime = new Date(candidate.scheduledTime);
+            const endTime = new Date(candidate.endTime);
 
             form.reset({
                 name: candidate.name,
@@ -142,9 +146,20 @@ export default function EditCandidatePage({
                 positionId: candidate.positionId,
                 problemId: candidate.problemId,
                 scheduledTime: scheduledTime,
+                endTime: endTime,
             });
         }
     }, [candidate, form]);
+
+    // Auto-calculate endTime when scheduledTime changes
+    const scheduledTime = form.watch('scheduledTime');
+    useEffect(() => {
+        if (scheduledTime) {
+            const endTime = new Date(scheduledTime);
+            endTime.setHours(endTime.getHours() + 4);
+            form.setValue('endTime', endTime);
+        }
+    }, [scheduledTime, form]);
 
     const updateMutation = useMutation({
         mutationFn: async (
@@ -156,6 +171,7 @@ export default function EditCandidatePage({
                 body: JSON.stringify({
                     ...data,
                     scheduledTime: data.scheduledTime.toISOString(),
+                    endTime: data.endTime.toISOString(),
                 }),
             });
             if (!response.ok) {
@@ -196,11 +212,7 @@ export default function EditCandidatePage({
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            </div>
-        );
+        return <CandidateFormSkeleton />;
     }
 
     if (!candidate) {
@@ -220,7 +232,7 @@ export default function EditCandidatePage({
         <div className="space-y-6">
             <div className="flex items-center gap-4">
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
                     onClick={() => router.push('/admin/candidates')}
                 >
@@ -460,6 +472,132 @@ export default function EditCandidatePage({
                                                             variant={'outline'}
                                                             className={cn(
                                                                 'w-full pl-3 text-left font-normal',
+                                                                !field.value &&
+                                                                    'text-muted-foreground'
+                                                            )}
+                                                            disabled={
+                                                                !!candidate.submissionTime
+                                                            }
+                                                        >
+                                                            {field.value ? (
+                                                                format(
+                                                                    field.value,
+                                                                    'PPP p'
+                                                                )
+                                                            ) : (
+                                                                <span>
+                                                                    Pick a date
+                                                                    and time
+                                                                </span>
+                                                            )}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent
+                                                    className="w-auto p-0 max-h-[480px] overflow-y-auto flex"
+                                                    align="start"
+                                                    side="bottom"
+                                                    sideOffset={4}
+                                                >
+                                                    <div className="max-h-[380px] overflow-y-auto">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={
+                                                                field.value
+                                                            }
+                                                            onSelect={date => {
+                                                                if (date) {
+                                                                    const currentTime =
+                                                                        field.value ||
+                                                                        new Date();
+                                                                    date.setHours(
+                                                                        currentTime.getHours()
+                                                                    );
+                                                                    date.setMinutes(
+                                                                        currentTime.getMinutes()
+                                                                    );
+                                                                    field.onChange(
+                                                                        date
+                                                                    );
+                                                                }
+                                                            }}
+                                                            disabled={date =>
+                                                                date <
+                                                                new Date(
+                                                                    new Date().setHours(
+                                                                        0,
+                                                                        0,
+                                                                        0,
+                                                                        0
+                                                                    )
+                                                                )
+                                                            }
+                                                            initialFocus
+                                                        />
+                                                    </div>
+                                                    <div className="border-l p-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <Input
+                                                                type="time"
+                                                                value={
+                                                                    field.value
+                                                                        ? format(
+                                                                              field.value,
+                                                                              'HH:mm'
+                                                                          )
+                                                                        : ''
+                                                                }
+                                                                onChange={e => {
+                                                                    const [
+                                                                        hours,
+                                                                        minutes,
+                                                                    ] =
+                                                                        e.target.value.split(
+                                                                            ':'
+                                                                        );
+                                                                    const newDate =
+                                                                        field.value ||
+                                                                        new Date();
+                                                                    newDate.setHours(
+                                                                        parseInt(
+                                                                            hours
+                                                                        )
+                                                                    );
+                                                                    newDate.setMinutes(
+                                                                        parseInt(
+                                                                            minutes
+                                                                        )
+                                                                    );
+                                                                    field.onChange(
+                                                                        newDate
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <FormField
+                                    control={form.control}
+                                    name="endTime"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel>End Time</FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant="outline"
+                                                            className={cn(
+                                                                'pl-3 text-left font-normal',
                                                                 !field.value &&
                                                                     'text-muted-foreground'
                                                             )}

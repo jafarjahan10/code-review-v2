@@ -43,6 +43,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { PositionsSkeleton } from '@/components/skeletons';
 
 interface Department {
     id: string;
@@ -71,6 +72,7 @@ export default function PositionsPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(5);
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -117,11 +119,11 @@ export default function PositionsPage() {
 
     // Fetch positions
     const { data, isLoading, error } = useQuery<PaginationData>({
-        queryKey: ['positions', page, search],
+        queryKey: ['positions', page, search, limit],
         queryFn: async () => {
             const params = new URLSearchParams({
                 page: page.toString(),
-                limit: '5',
+                limit: limit.toString(),
                 ...(search && { search }),
             });
             const response = await fetch(`/api/admin/positions?${params}`);
@@ -237,50 +239,311 @@ export default function PositionsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Positions</h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage positions across departments
-                </p>
-            </div>
+            {isLoading ? (
+                <PositionsSkeleton />
+            ) : (
+                <>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Positions
+                        </h1>
+                        <p className="text-muted-foreground mt-2">
+                            Manage positions across departments
+                        </p>
+                    </div>
 
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2 flex-1 max-w-md">
-                    <Input
-                        placeholder="Search positions..."
-                        value={searchInput}
-                        onChange={e => setSearchInput(e.target.value)}
-                    />
-                </div>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 flex-1 max-w-md">
+                            <Input
+                                placeholder="Search positions..."
+                                value={searchInput}
+                                onChange={e => setSearchInput(e.target.value)}
+                            />
+                        </div>
 
-                {isAdmin && (
+                        {isAdmin && (
+                            <Dialog
+                                open={isAddModalOpen}
+                                onOpenChange={setIsAddModalOpen}
+                            >
+                                <DialogTrigger asChild>
+                                    <Button className="text-muted">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add Position
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            Add New Position
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            Create a new position under a
+                                            department
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="department">
+                                                Department
+                                            </Label>
+                                            <Select
+                                                value={newPosition.departmentId}
+                                                onValueChange={value =>
+                                                    setNewPosition({
+                                                        ...newPosition,
+                                                        departmentId: value,
+                                                    })
+                                                }
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select department" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {departmentsData?.departments.map(
+                                                        dept => (
+                                                            <SelectItem
+                                                                key={dept.id}
+                                                                value={dept.id}
+                                                            >
+                                                                {dept.name}
+                                                            </SelectItem>
+                                                        )
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Name</Label>
+                                            <Input
+                                                id="name"
+                                                value={newPosition.name}
+                                                onChange={e =>
+                                                    setNewPosition({
+                                                        ...newPosition,
+                                                        name: e.target.value,
+                                                    })
+                                                }
+                                                placeholder="e.g., Senior Developer"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="description">
+                                                Description (Optional)
+                                            </Label>
+                                            <Textarea
+                                                id="description"
+                                                value={newPosition.description}
+                                                onChange={e =>
+                                                    setNewPosition({
+                                                        ...newPosition,
+                                                        description:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Enter description"
+                                                rows={3}
+                                            />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() =>
+                                                setIsAddModalOpen(false)
+                                            }
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            className="text-muted"
+                                            onClick={handleAddPosition}
+                                            disabled={
+                                                createPositionMutation.isPending
+                                            }
+                                        >
+                                            {createPositionMutation.isPending && (
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            )}
+                                            Add Position
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                    </div>
+                    <div className="border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Department</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>Created At</TableHead>
+                                    {isAdmin && (
+                                        <TableHead className="text-right">
+                                            Actions
+                                        </TableHead>
+                                    )}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {error ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={isAdmin ? 5 : 4}
+                                            className="text-center py-8 text-destructive"
+                                        >
+                                            Error loading positions
+                                        </TableCell>
+                                    </TableRow>
+                                ) : data?.positions.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={isAdmin ? 5 : 4}
+                                            className="text-center py-8 text-muted-foreground"
+                                        >
+                                            No positions found
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    data?.positions.map(position => (
+                                        <TableRow key={position.id}>
+                                            <TableCell className="font-medium">
+                                                {position.name}
+                                            </TableCell>
+                                            <TableCell>
+                                                {position.department.name}
+                                            </TableCell>
+                                            <TableCell>
+                                                {position.description || '-'}
+                                            </TableCell>
+                                            <TableCell>
+                                                {new Date(
+                                                    position.createdAt
+                                                ).toLocaleDateString()}
+                                            </TableCell>
+                                            {isAdmin && (
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                openEditModal(
+                                                                    position
+                                                                )
+                                                            }
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                setDeletingPositionId(
+                                                                    position.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            )}
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Pagination */}
+                    {data && (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <p className="text-sm text-muted-foreground">
+                                    Showing {(page - 1) * limit + 1} to{' '}
+                                    {Math.min(page * limit, data.total)} of{' '}
+                                    {data.total} positions
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">
+                                        Rows per page:
+                                    </span>
+                                    <Select
+                                        value={limit.toString()}
+                                        onValueChange={value => {
+                                            setLimit(parseInt(value));
+                                            setPage(1);
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-[70px] h-8">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5">5</SelectItem>
+                                            <SelectItem value="10">
+                                                10
+                                            </SelectItem>
+                                            <SelectItem value="20">
+                                                20
+                                            </SelectItem>
+                                            <SelectItem value="50">
+                                                50
+                                            </SelectItem>
+                                            <SelectItem value="100">
+                                                100
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            {data.totalPages > 1 && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(page - 1)}
+                                        disabled={page === 1}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(page + 1)}
+                                        disabled={page === data.totalPages}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Edit Position Dialog */}
                     <Dialog
-                        open={isAddModalOpen}
-                        onOpenChange={setIsAddModalOpen}
+                        open={editingPosition !== null}
+                        onOpenChange={open => !open && setEditingPosition(null)}
                     >
-                        <DialogTrigger asChild>
-                            <Button className="text-muted">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Position
-                            </Button>
-                        </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Add New Position</DialogTitle>
+                                <DialogTitle>Edit Position</DialogTitle>
                                 <DialogDescription>
-                                    Create a new position under a department
+                                    Update position information
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="department">
+                                    <Label htmlFor="edit-department">
                                         Department
                                     </Label>
                                     <Select
-                                        value={newPosition.departmentId}
+                                        value={editPosition.departmentId}
                                         onValueChange={value =>
-                                            setNewPosition({
-                                                ...newPosition,
+                                            setEditPosition({
+                                                ...editPosition,
                                                 departmentId: value,
                                             })
                                         }
@@ -303,13 +566,13 @@ export default function PositionsPage() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Name</Label>
+                                    <Label htmlFor="edit-name">Name</Label>
                                     <Input
-                                        id="name"
-                                        value={newPosition.name}
+                                        id="edit-name"
+                                        value={editPosition.name}
                                         onChange={e =>
-                                            setNewPosition({
-                                                ...newPosition,
+                                            setEditPosition({
+                                                ...editPosition,
                                                 name: e.target.value,
                                             })
                                         }
@@ -317,15 +580,15 @@ export default function PositionsPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="description">
+                                    <Label htmlFor="edit-description">
                                         Description (Optional)
                                     </Label>
                                     <Textarea
-                                        id="description"
-                                        value={newPosition.description}
+                                        id="edit-description"
+                                        value={editPosition.description}
                                         onChange={e =>
-                                            setNewPosition({
-                                                ...newPosition,
+                                            setEditPosition({
+                                                ...editPosition,
                                                 description: e.target.value,
                                             })
                                         }
@@ -337,267 +600,57 @@ export default function PositionsPage() {
                             <DialogFooter>
                                 <Button
                                     variant="outline"
-                                    onClick={() => setIsAddModalOpen(false)}
+                                    onClick={() => setEditingPosition(null)}
                                 >
                                     Cancel
                                 </Button>
                                 <Button
                                     className="text-muted"
-                                    onClick={handleAddPosition}
-                                    disabled={createPositionMutation.isPending}
+                                    onClick={handleUpdatePosition}
+                                    disabled={updatePositionMutation.isPending}
                                 >
-                                    {createPositionMutation.isPending && (
+                                    {updatePositionMutation.isPending && (
                                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                     )}
-                                    Add Position
+                                    Update Position
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
-                )}
-            </div>
 
-            <div className="border rounded-lg">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Department</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Created At</TableHead>
-                            {isAdmin && (
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            )}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 5 : 4}
-                                    className="text-center py-8"
+                    {/* Delete Confirmation Dialog */}
+                    <AlertDialog
+                        open={deletingPositionId !== null}
+                        onOpenChange={open =>
+                            !open && setDeletingPositionId(null)
+                        }
+                    >
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Are you sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete the position.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleDeletePosition}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                                </TableCell>
-                            </TableRow>
-                        ) : error ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 5 : 4}
-                                    className="text-center py-8 text-destructive"
-                                >
-                                    Error loading positions
-                                </TableCell>
-                            </TableRow>
-                        ) : data?.positions.length === 0 ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 5 : 4}
-                                    className="text-center py-8 text-muted-foreground"
-                                >
-                                    No positions found
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            data?.positions.map(position => (
-                                <TableRow key={position.id}>
-                                    <TableCell className="font-medium">
-                                        {position.name}
-                                    </TableCell>
-                                    <TableCell>
-                                        {position.department.name}
-                                    </TableCell>
-                                    <TableCell>
-                                        {position.description || '-'}
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Date(
-                                            position.createdAt
-                                        ).toLocaleDateString()}
-                                    </TableCell>
-                                    {isAdmin && (
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        openEditModal(position)
-                                                    }
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        setDeletingPositionId(
-                                                            position.id
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
+                                    {deletePositionMutation.isPending && (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                     )}
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* Pagination */}
-            {data && data.totalPages > 1 && (
-                <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                        Showing {(page - 1) * 5 + 1} to{' '}
-                        {Math.min(page * 5, data.total)} of {data.total}{' '}
-                        positions
-                    </p>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPage(page - 1)}
-                            disabled={page === 1}
-                        >
-                            Previous
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPage(page + 1)}
-                            disabled={page === data.totalPages}
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </div>
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
             )}
-
-            {/* Edit Position Dialog */}
-            <Dialog
-                open={editingPosition !== null}
-                onOpenChange={open => !open && setEditingPosition(null)}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit Position</DialogTitle>
-                        <DialogDescription>
-                            Update position information
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-department">Department</Label>
-                            <Select
-                                value={editPosition.departmentId}
-                                onValueChange={value =>
-                                    setEditPosition({
-                                        ...editPosition,
-                                        departmentId: value,
-                                    })
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select department" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {departmentsData?.departments.map(dept => (
-                                        <SelectItem
-                                            key={dept.id}
-                                            value={dept.id}
-                                        >
-                                            {dept.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-name">Name</Label>
-                            <Input
-                                id="edit-name"
-                                value={editPosition.name}
-                                onChange={e =>
-                                    setEditPosition({
-                                        ...editPosition,
-                                        name: e.target.value,
-                                    })
-                                }
-                                placeholder="e.g., Senior Developer"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-description">
-                                Description (Optional)
-                            </Label>
-                            <Textarea
-                                id="edit-description"
-                                value={editPosition.description}
-                                onChange={e =>
-                                    setEditPosition({
-                                        ...editPosition,
-                                        description: e.target.value,
-                                    })
-                                }
-                                placeholder="Enter description"
-                                rows={3}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setEditingPosition(null)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            className="text-muted"
-                            onClick={handleUpdatePosition}
-                            disabled={updatePositionMutation.isPending}
-                        >
-                            {updatePositionMutation.isPending && (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            )}
-                            Update Position
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <AlertDialog
-                open={deletingPositionId !== null}
-                onOpenChange={open => !open && setDeletingPositionId(null)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the position.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDeletePosition}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            {deletePositionMutation.isPending && (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            )}
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 }

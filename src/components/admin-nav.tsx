@@ -73,9 +73,11 @@ export default function AdminNav() {
     return (
         <nav className="flex flex-col h-full border-r bg-background">
             <div className="p-5">
-                <h2 className="text-2xl font-bold font-space text-center">
-                    CodeReview
-                </h2>
+                <Link href="/admin">
+                    <h2 className="text-2xl font-bold font-space text-center cursor-pointer hover:opacity-80 transition-opacity">
+                        CodeReview
+                    </h2>
+                </Link>
             </div>
 
             <Separator />
