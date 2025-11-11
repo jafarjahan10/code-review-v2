@@ -3,7 +3,7 @@
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Eye, EyeOff, Pencil, Copy } from 'lucide-react';
+import { ArrowLeft, Pencil, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -13,8 +13,8 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
 import { toast } from 'sonner';
+import { CandidateViewSkeleton } from '@/components/skeletons';
 
 export default function ViewCandidatePage({
     params,
@@ -23,7 +23,6 @@ export default function ViewCandidatePage({
 }) {
     const { id } = use(params);
     const router = useRouter();
-    const [showPassword, setShowPassword] = useState(false);
 
     const copyPassword = () => {
         if (candidate?.password) {
@@ -52,11 +51,7 @@ export default function ViewCandidatePage({
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            </div>
-        );
+        return <CandidateViewSkeleton />;
     }
 
     if (!candidate) {
@@ -77,7 +72,7 @@ export default function ViewCandidatePage({
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
                         onClick={() => router.push('/admin/candidates')}
                     >

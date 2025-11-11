@@ -35,7 +35,15 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
+import { DepartmentsSkeleton } from '@/components/skeletons';
 
 interface Department {
     id: string;
@@ -57,6 +65,7 @@ export default function DepartmentsPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(5);
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -90,11 +99,11 @@ export default function DepartmentsPage() {
 
     // Fetch departments
     const { data, isLoading, error } = useQuery<PaginationData>({
-        queryKey: ['departments', page, search],
+        queryKey: ['departments', page, search, limit],
         queryFn: async () => {
             const params = new URLSearchParams({
                 page: page.toString(),
-                limit: '5',
+                limit: limit.toString(),
                 ...(search && { search }),
             });
             const response = await fetch(`/api/admin/departments?${params}`);
@@ -209,51 +218,279 @@ export default function DepartmentsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    Departments
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage organizational departments and units
-                </p>
-            </div>
+            {isLoading ? (
+                <DepartmentsSkeleton />
+            ) : (
+                <>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Departments
+                        </h1>
+                        <p className="text-muted-foreground mt-2">
+                            Manage organizational departments and units
+                        </p>
+                    </div>
 
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2 flex-1 max-w-md">
-                    <Input
-                        placeholder="Search departments..."
-                        value={searchInput}
-                        onChange={e => setSearchInput(e.target.value)}
-                    />
-                </div>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 flex-1 max-w-md">
+                            <Input
+                                placeholder="Search departments..."
+                                value={searchInput}
+                                onChange={e => setSearchInput(e.target.value)}
+                            />
+                        </div>
 
-                {isAdmin && (
+                        {isAdmin && (
+                            <Dialog
+                                open={isAddModalOpen}
+                                onOpenChange={setIsAddModalOpen}
+                            >
+                                <DialogTrigger asChild>
+                                    <Button className="text-muted">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add Department
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            Add New Department
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            Create a new department
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Name</Label>
+                                            <Input
+                                                id="name"
+                                                value={newDepartment.name}
+                                                onChange={e =>
+                                                    setNewDepartment({
+                                                        ...newDepartment,
+                                                        name: e.target.value,
+                                                    })
+                                                }
+                                                placeholder="e.g., Engineering, Sales"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="description">
+                                                Description (Optional)
+                                            </Label>
+                                            <Textarea
+                                                id="description"
+                                                value={
+                                                    newDepartment.description
+                                                }
+                                                onChange={e =>
+                                                    setNewDepartment({
+                                                        ...newDepartment,
+                                                        description:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Enter description"
+                                                rows={3}
+                                            />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() =>
+                                                setIsAddModalOpen(false)
+                                            }
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            className="text-muted"
+                                            onClick={handleAddDepartment}
+                                            disabled={
+                                                createDepartmentMutation.isPending
+                                            }
+                                        >
+                                            {createDepartmentMutation.isPending && (
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            )}
+                                            Add Department
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                    </div>
+                    <div className="border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>Created At</TableHead>
+                                    {isAdmin && (
+                                        <TableHead className="text-right">
+                                            Actions
+                                        </TableHead>
+                                    )}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {error ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={isAdmin ? 4 : 3}
+                                            className="text-center py-8 text-destructive"
+                                        >
+                                            Error loading departments
+                                        </TableCell>
+                                    </TableRow>
+                                ) : data?.departments.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={isAdmin ? 4 : 3}
+                                            className="text-center py-8 text-muted-foreground"
+                                        >
+                                            No departments found
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    data?.departments.map(department => (
+                                        <TableRow key={department.id}>
+                                            <TableCell className="font-medium">
+                                                {department.name}
+                                            </TableCell>
+                                            <TableCell>
+                                                {department.description || '-'}
+                                            </TableCell>
+                                            <TableCell>
+                                                {new Date(
+                                                    department.createdAt
+                                                ).toLocaleDateString()}
+                                            </TableCell>
+                                            {isAdmin && (
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                openEditModal(
+                                                                    department
+                                                                )
+                                                            }
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                setDeletingDepartmentId(
+                                                                    department.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            )}
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Pagination */}
+                    {data && (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <p className="text-sm text-muted-foreground">
+                                    Showing {(page - 1) * limit + 1} to{' '}
+                                    {Math.min(page * limit, data.total)} of{' '}
+                                    {data.total} departments
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">
+                                        Rows per page:
+                                    </span>
+                                    <Select
+                                        value={limit.toString()}
+                                        onValueChange={value => {
+                                            setLimit(parseInt(value));
+                                            setPage(1);
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-[70px] h-8">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5">5</SelectItem>
+                                            <SelectItem value="10">
+                                                10
+                                            </SelectItem>
+                                            <SelectItem value="20">
+                                                20
+                                            </SelectItem>
+                                            <SelectItem value="50">
+                                                50
+                                            </SelectItem>
+                                            <SelectItem value="100">
+                                                100
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            {data.totalPages > 1 && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(page - 1)}
+                                        disabled={page === 1}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(page + 1)}
+                                        disabled={page === data.totalPages}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Edit Department Dialog */}
                     <Dialog
-                        open={isAddModalOpen}
-                        onOpenChange={setIsAddModalOpen}
+                        open={editingDepartment !== null}
+                        onOpenChange={open =>
+                            !open && setEditingDepartment(null)
+                        }
                     >
-                        <DialogTrigger asChild>
-                            <Button className="text-muted">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Department
-                            </Button>
-                        </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Add New Department</DialogTitle>
+                                <DialogTitle>Edit Department</DialogTitle>
                                 <DialogDescription>
-                                    Create a new department
+                                    Update department information
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Name</Label>
+                                    <Label htmlFor="edit-name">Name</Label>
                                     <Input
-                                        id="name"
-                                        value={newDepartment.name}
+                                        id="edit-name"
+                                        value={editDepartment.name}
                                         onChange={e =>
-                                            setNewDepartment({
-                                                ...newDepartment,
+                                            setEditDepartment({
+                                                ...editDepartment,
                                                 name: e.target.value,
                                             })
                                         }
@@ -261,15 +498,15 @@ export default function DepartmentsPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="description">
+                                    <Label htmlFor="edit-description">
                                         Description (Optional)
                                     </Label>
                                     <Textarea
-                                        id="description"
-                                        value={newDepartment.description}
+                                        id="edit-description"
+                                        value={editDepartment.description}
                                         onChange={e =>
-                                            setNewDepartment({
-                                                ...newDepartment,
+                                            setEditDepartment({
+                                                ...editDepartment,
                                                 description: e.target.value,
                                             })
                                         }
@@ -281,241 +518,59 @@ export default function DepartmentsPage() {
                             <DialogFooter>
                                 <Button
                                     variant="outline"
-                                    onClick={() => setIsAddModalOpen(false)}
+                                    onClick={() => setEditingDepartment(null)}
                                 >
                                     Cancel
                                 </Button>
                                 <Button
                                     className="text-muted"
-                                    onClick={handleAddDepartment}
+                                    onClick={handleUpdateDepartment}
                                     disabled={
-                                        createDepartmentMutation.isPending
+                                        updateDepartmentMutation.isPending
                                     }
                                 >
-                                    {createDepartmentMutation.isPending && (
+                                    {updateDepartmentMutation.isPending && (
                                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                     )}
-                                    Add Department
+                                    Update Department
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
-                )}
-            </div>
 
-            <div className="border rounded-lg">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Created At</TableHead>
-                            {isAdmin && (
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            )}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 4 : 3}
-                                    className="text-center py-8"
+                    {/* Delete Confirmation Dialog */}
+                    <AlertDialog
+                        open={deletingDepartmentId !== null}
+                        onOpenChange={open =>
+                            !open && setDeletingDepartmentId(null)
+                        }
+                    >
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Are you sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete the department.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleDeleteDepartment}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                                </TableCell>
-                            </TableRow>
-                        ) : error ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 4 : 3}
-                                    className="text-center py-8 text-destructive"
-                                >
-                                    Error loading departments
-                                </TableCell>
-                            </TableRow>
-                        ) : data?.departments.length === 0 ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={isAdmin ? 4 : 3}
-                                    className="text-center py-8 text-muted-foreground"
-                                >
-                                    No departments found
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            data?.departments.map(department => (
-                                <TableRow key={department.id}>
-                                    <TableCell className="font-medium">
-                                        {department.name}
-                                    </TableCell>
-                                    <TableCell>
-                                        {department.description || '-'}
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Date(
-                                            department.createdAt
-                                        ).toLocaleDateString()}
-                                    </TableCell>
-                                    {isAdmin && (
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        openEditModal(
-                                                            department
-                                                        )
-                                                    }
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        setDeletingDepartmentId(
-                                                            department.id
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
+                                    {deleteDepartmentMutation.isPending && (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                     )}
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* Pagination */}
-            {data && data.totalPages > 1 && (
-                <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                        Showing {(page - 1) * 5 + 1} to{' '}
-                        {Math.min(page * 5, data.total)} of {data.total}{' '}
-                        departments
-                    </p>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPage(page - 1)}
-                            disabled={page === 1}
-                        >
-                            Previous
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPage(page + 1)}
-                            disabled={page === data.totalPages}
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </div>
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
             )}
-
-            {/* Edit Department Dialog */}
-            <Dialog
-                open={editingDepartment !== null}
-                onOpenChange={open => !open && setEditingDepartment(null)}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit Department</DialogTitle>
-                        <DialogDescription>
-                            Update department information
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-name">Name</Label>
-                            <Input
-                                id="edit-name"
-                                value={editDepartment.name}
-                                onChange={e =>
-                                    setEditDepartment({
-                                        ...editDepartment,
-                                        name: e.target.value,
-                                    })
-                                }
-                                placeholder="e.g., Engineering, Sales"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-description">
-                                Description (Optional)
-                            </Label>
-                            <Textarea
-                                id="edit-description"
-                                value={editDepartment.description}
-                                onChange={e =>
-                                    setEditDepartment({
-                                        ...editDepartment,
-                                        description: e.target.value,
-                                    })
-                                }
-                                placeholder="Enter description"
-                                rows={3}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setEditingDepartment(null)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            className="text-muted"
-                            onClick={handleUpdateDepartment}
-                            disabled={updateDepartmentMutation.isPending}
-                        >
-                            {updateDepartmentMutation.isPending && (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            )}
-                            Update Department
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <AlertDialog
-                open={deletingDepartmentId !== null}
-                onOpenChange={open => !open && setDeletingDepartmentId(null)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the department.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDeleteDepartment}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            {deleteDepartmentMutation.isPending && (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            )}
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 }

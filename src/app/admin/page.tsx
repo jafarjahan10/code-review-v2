@@ -35,8 +35,8 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    Legend,
 } from 'recharts';
+import { DashboardSkeleton } from '@/components/skeletons';
 
 interface DashboardStats {
     totalCandidates: number;
@@ -156,8 +156,8 @@ export default function AdminPage() {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <div suppressHydrationWarning>
+                <DashboardSkeleton />
             </div>
         );
     }

@@ -42,6 +42,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { CandidateFormSkeleton } from '@/components/skeletons';
 
 const formSchema = z.object({
     name: z.string().min(1, 'Name is required'),
@@ -211,11 +212,7 @@ export default function EditCandidatePage({
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            </div>
-        );
+        return <CandidateFormSkeleton />;
     }
 
     if (!candidate) {
@@ -235,7 +232,7 @@ export default function EditCandidatePage({
         <div className="space-y-6">
             <div className="flex items-center gap-4">
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
                     onClick={() => router.push('/admin/candidates')}
                 >

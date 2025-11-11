@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Loader2, Lock, Clock, Code, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CandidatePortalSkeleton } from '@/components/skeletons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Editor from '@monaco-editor/react';
@@ -235,11 +236,7 @@ export default function CandidatePortal() {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
+        return <CandidatePortalSkeleton />;
     }
 
     if (!candidate) {

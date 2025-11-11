@@ -181,7 +181,7 @@ export default function NewCandidatePage() {
         <div className="space-y-6">
             <div className="flex items-center gap-4">
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
                     onClick={() => router.push('/admin/candidates')}
                 >

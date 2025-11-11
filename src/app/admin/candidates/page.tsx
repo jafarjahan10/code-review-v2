@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, Pencil, Plus, Trash2, Copy, ArrowUpDown, X } from 'lucide-react';
@@ -34,6 +34,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { CandidatesSkeleton } from '@/components/skeletons';
 
 interface Candidate {
     id: string;
@@ -48,7 +49,7 @@ interface Candidate {
     problem: { title: string };
 }
 
-export default function AdminCandidates() {
+function AdminCandidatesContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const queryClient = useQueryClient();
@@ -57,6 +58,7 @@ export default function AdminCandidates() {
     const [search, setSearch] = useState(searchParams.get('search') || '');
     const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
     const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
+    const [limit, setLimit] = useState(parseInt(searchParams.get('limit') || '5'));
     const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('departmentId') || '');
     const [positionFilter, setPositionFilter] = useState(searchParams.get('positionId') || '');
     const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
@@ -71,6 +73,7 @@ export default function AdminCandidates() {
         const params = new URLSearchParams();
         
         if (page !== 1) params.set('page', page.toString());
+        if (limit !== 5) params.set('limit', limit.toString());
         if (search) params.set('search', search);
         if (departmentFilter) params.set('departmentId', departmentFilter);
         if (positionFilter) params.set('positionId', positionFilter);
@@ -82,7 +85,7 @@ export default function AdminCandidates() {
         const newUrl = queryString ? `/admin/candidates?${queryString}` : '/admin/candidates';
         
         router.replace(newUrl, { scroll: false });
-    }, [page, search, departmentFilter, positionFilter, statusFilter, sortBy, sortOrder, router]);
+    }, [page, limit, search, departmentFilter, positionFilter, statusFilter, sortBy, sortOrder, router]);
 
     // Generate avatar gradient based on name
     const getAvatarGradient = (name: string) => {
@@ -147,11 +150,11 @@ export default function AdminCandidates() {
     });
 
     const { data, isLoading } = useQuery({
-        queryKey: ['candidates', page, search, departmentFilter, positionFilter, statusFilter, sortBy, sortOrder],
+        queryKey: ['candidates', page, limit, search, departmentFilter, positionFilter, statusFilter, sortBy, sortOrder],
         queryFn: async () => {
             const params = new URLSearchParams({
                 page: page.toString(),
-                limit: '5',
+                limit: limit.toString(),
                 ...(search && { search }),
                 ...(departmentFilter && { departmentId: departmentFilter }),
                 ...(positionFilter && { positionId: positionFilter }),
@@ -224,21 +227,25 @@ export default function AdminCandidates() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">Candidates</h1>
-                    <p className="text-muted-foreground">
-                        Manage candidates for technical assessments
-                    </p>
-                </div>
-                <Button
-                    className="text-muted"
-                    onClick={() => router.push('/admin/candidates/new')}
-                >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Candidate
-                </Button>
-            </div>
+            {isLoading ? (
+                <CandidatesSkeleton />
+            ) : (
+                <>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold">Candidates</h1>
+                            <p className="text-muted-foreground">
+                                Manage candidates for technical assessments
+                            </p>
+                        </div>
+                        <Button
+                            className="text-muted"
+                            onClick={() => router.push('/admin/candidates/new')}
+                        >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Candidate
+                        </Button>
+                    </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <Input
@@ -317,12 +324,6 @@ export default function AdminCandidates() {
                 )}
             </div>
 
-            {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                </div>
-            ) : (
-                <>
                     <div className="rounded-md border">
                         <Table>
                             <TableHeader>
@@ -523,35 +524,60 @@ export default function AdminCandidates() {
                         </Table>
                     </div>
 
-                    {data && data.totalPages > 1 && (
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">
-                                Showing {(page - 1) * 5 + 1} to{' '}
-                                {Math.min(page * 5, data.total)} of {data.total}{' '}
-                                candidates
-                            </p>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setPage(page - 1)}
-                                    disabled={page === 1}
-                                >
-                                    Previous
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setPage(page + 1)}
-                                    disabled={page === data.totalPages}
-                                >
-                                    Next
-                                </Button>
+                    {data && (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <p className="text-sm text-muted-foreground whitespace-nowrap">
+                                    Showing {(page - 1) * limit + 1} to{' '}
+                                    {Math.min(page * limit, data.total)} of {data.total}{' '}
+                                    candidates
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <label htmlFor="limit-select" className="text-sm text-muted-foreground whitespace-nowrap">
+                                        Rows per page:
+                                    </label>
+                                    <Select
+                                        value={limit.toString()}
+                                        onValueChange={(value) => {
+                                            setLimit(parseInt(value));
+                                            setPage(1);
+                                        }}
+                                    >
+                                        <SelectTrigger id="limit-select" className="w-[70px] h-8">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5">5</SelectItem>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="20">20</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
+                            {data.totalPages > 1 && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(page - 1)}
+                                        disabled={page === 1}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPage(page + 1)}
+                                        disabled={page === data.totalPages}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     )}
-                </>
-            )}
 
             <AlertDialog
                 open={candidateToDelete !== null}
@@ -573,6 +599,16 @@ export default function AdminCandidates() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+                </>
+            )}
         </div>
+    );
+}
+
+export default function AdminCandidates() {
+    return (
+        <Suspense fallback={<CandidatesSkeleton />}>
+            <AdminCandidatesContent />
+        </Suspense>
     );
 }
